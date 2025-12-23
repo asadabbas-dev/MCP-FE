@@ -153,13 +153,14 @@ export default function NotificationsList() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header Section with proper spacing */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">
             {isTeacher ? "Manage Notifications" : "Notifications"}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm sm:text-base text-gray-600">
             {isTeacher
               ? "Create and manage notifications for students"
               : "Stay updated with important announcements and alerts"}
@@ -170,11 +171,13 @@ export default function NotificationsList() {
             )}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center flex-wrap gap-2">
           {isTeacher ? (
             <Button
               startIcon={<Plus className="w-4 h-4" />}
               onClick={() => setIsCreateModalOpen(true)}
+              size="md"
+              className="w-full sm:w-auto whitespace-nowrap"
             >
               Create Notification
             </Button>
@@ -182,9 +185,10 @@ export default function NotificationsList() {
             unreadCount > 0 && (
               <Button
                 variant="outline"
-                size="sm"
+                size="md"
                 startIcon={<CheckCheck className="w-4 h-4" />}
                 onClick={handleMarkAllAsRead}
+                className="w-full sm:w-auto whitespace-nowrap"
               >
                 Mark All as Read
               </Button>
@@ -208,15 +212,15 @@ export default function NotificationsList() {
               key={notification.id}
               className={`relative ${notification.read ? "opacity-75" : ""}`}
             >
-              <div className="flex items-start space-x-4">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 pb-12 sm:pb-4">
                 <div className="shrink-0 mt-1">
                   {getIcon(notification.type)}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-2">
+                <div className="flex-1 min-w-0 w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-2">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex items-center space-x-2 flex-wrap">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
                           {notification.title}
                         </h3>
                         {!notification.read && (
@@ -224,38 +228,40 @@ export default function NotificationsList() {
                         )}
                       </div>
                       {notification.course && (
-                        <p className="text-sm text-indigo-600 mt-1">
+                        <p className="text-xs sm:text-sm text-indigo-600 mt-1 break-words">
                           {notification.course}
                         </p>
                       )}
                     </div>
                     {/* Time at top right */}
-                    <span className="text-xs text-gray-500 shrink-0 ml-2">
+                    <span className="text-xs text-gray-500 shrink-0 sm:ml-2">
                       {notification.time}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600 break-words pr-0 sm:pr-16">
                     {notification.message}
                   </p>
                 </div>
 
                 {/* Action Icons at bottom right */}
-                <div className="absolute bottom-4 right-4 flex items-center space-x-1 shrink-0">
+                <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 flex items-center space-x-1 shrink-0">
                   {!notification.read && (
                     <button
                       onClick={() => handleMarkAsRead(notification.id)}
-                      className="p-2 text-indigo-600 bg-indigo-50 rounded-lg transition-colors"
+                      className="p-1.5 sm:p-2 text-indigo-600 bg-indigo-50 rounded-lg transition-colors hover:bg-indigo-100"
                       title="Mark as Read"
+                      aria-label="Mark as Read"
                     >
-                      <Check className="w-4 h-4" />
+                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   )}
                   <button
                     onClick={() => handleDelete(notification.id)}
-                    className="p-2 text-red-600 bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 sm:p-2 text-red-600 bg-red-50 rounded-lg transition-colors hover:bg-red-100"
                     title="Delete"
+                    aria-label="Delete"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               </div>

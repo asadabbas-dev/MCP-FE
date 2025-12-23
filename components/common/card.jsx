@@ -25,15 +25,15 @@ export default function Card({
 }) {
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 p-3 ${className}`}
+      className={`bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 ${className}`}
       {...props}
     >
       {(title || subtitle) && (
-        <div className="mb-4">
+        <div className="mb-3 sm:mb-4">
           {title && (
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">{title}</h3>
           )}
-          {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-xs sm:text-sm text-gray-600 mt-1">{subtitle}</p>}
         </div>
       )}
       {children}

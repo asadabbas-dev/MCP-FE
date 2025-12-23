@@ -109,7 +109,7 @@ function RespondRequestForm({ request, onSubmit, onCancel, loading }) {
       <div>
         <label
           htmlFor="response"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
         >
           Response <span className="text-red-500">*</span>
         </label>
@@ -118,19 +118,19 @@ function RespondRequestForm({ request, onSubmit, onCancel, loading }) {
           name="response"
           {...register("response")}
           rows={5}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none"
+          className="block w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none resize-none"
           placeholder="Enter your response to the student"
         />
         {errors.response && (
-          <p className="mt-1 text-sm text-red-600">{errors.response.message}</p>
+          <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.response.message}</p>
         )}
       </div>
 
-      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
+        <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
           {loading && (
             <span className="mr-2">
               <Loading size="sm" />
@@ -255,23 +255,22 @@ export default function TeacherRequestsView() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Student Requests</h1>
-          <p className="text-gray-600 mt-1">
-            View and respond to student requests
-          </p>
-        </div>
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header Section with proper spacing */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">Student Requests</h1>
+        <p className="text-sm sm:text-base text-gray-600">
+          View and respond to student requests
+        </p>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+      <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 rounded-lg p-1">
         {["all", "pending", "in-progress", "resolved", "rejected"].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors capitalize ${
+            className={`flex-1 min-w-[80px] sm:min-w-0 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors capitalize ${
               filter === status
                 ? "bg-white text-indigo-600 shadow-sm"
                 : "text-gray-600 hover:text-gray-900"
@@ -295,22 +294,22 @@ export default function TeacherRequestsView() {
         ) : (
           filteredRequests.map((request) => (
             <Card key={request.id}>
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0">
+                  <div className="flex items-start space-x-2 sm:space-x-3 min-w-0 flex-1">
+                    <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg flex-shrink-0">
                       {getStatusIcon(request.status)}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
                         {request.subject}
                       </h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <div className="flex items-center space-x-1 text-sm text-gray-600">
-                          <User className="w-4 h-4" />
-                          <span>{request.studentName}</span>
-                          <span className="text-gray-400">•</span>
-                          <span>{request.studentRollNumber}</span>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                        <div className="flex items-center space-x-1 text-xs sm:text-sm text-gray-600">
+                          <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <span className="break-words">{request.studentName}</span>
+                          <span className="text-gray-400 hidden sm:inline">•</span>
+                          <span className="break-all">{request.studentRollNumber}</span>
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
@@ -319,7 +318,7 @@ export default function TeacherRequestsView() {
                     </div>
                   </div>
                   <span
-                    className={`px-3 py-1 text-xs font-medium rounded-md ${getStatusColor(
+                    className={`px-2 sm:px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap flex-shrink-0 self-start sm:self-auto ${getStatusColor(
                       request.status
                     )}`}
                   >
@@ -327,36 +326,38 @@ export default function TeacherRequestsView() {
                   </span>
                 </div>
 
-                <div className="pt-4 border-t border-gray-200">
+                <div className="pt-3 sm:pt-4 border-t border-gray-200">
                   <div className="mb-2">
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
                       Type
                     </p>
-                    <p className="text-sm font-medium text-gray-900">{request.type}</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 break-words">{request.type}</p>
                   </div>
                   <div className="mb-2">
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
                       Description
                     </p>
-                    <p className="text-sm text-gray-600">{request.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 break-words">{request.description}</p>
                   </div>
                   {request.response && (
                     <div className="mt-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                       <p className="text-xs font-medium text-indigo-700 uppercase tracking-wide mb-1">
                         Your Response
                       </p>
-                      <p className="text-sm text-gray-700">{request.response}</p>
+                      <p className="text-xs sm:text-sm text-gray-700 break-words">{request.response}</p>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-end pt-2 border-t border-gray-200">
+                <div className="flex items-center justify-end pt-2 sm:pt-3 border-t border-gray-200">
                   <Button
                     size="sm"
                     startIcon={<MessageSquare className="w-4 h-4" />}
                     onClick={() => handleRespond(request)}
+                    className="w-full sm:w-auto"
                   >
-                    {request.response ? "Update Response" : "Respond"}
+                    <span className="hidden sm:inline">{request.response ? "Update Response" : "Respond"}</span>
+                    <span className="sm:hidden">{request.response ? "Update" : "Respond"}</span>
                   </Button>
                 </div>
               </div>

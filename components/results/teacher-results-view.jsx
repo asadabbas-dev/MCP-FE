@@ -132,11 +132,11 @@ function GradeEntryForm({ student, course, onSubmit, onCancel, loading }) {
         required
       />
 
-      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
+        <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
           {loading && (
             <span className="mr-2">
               <Loading size="sm" />
@@ -241,37 +241,38 @@ export default function TeacherResultsView() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header Section with proper spacing */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Enter Grades</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">Enter Grades</h1>
+        <p className="text-sm sm:text-base text-gray-600">
           Enter and manage grades for your courses
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+      <div className="flex items-center space-x-1 sm:space-x-2 bg-gray-100 rounded-lg p-1">
         <button
           onClick={() => setActiveTab("courses")}
-          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center justify-center ${
             activeTab === "courses"
               ? "bg-white text-indigo-600 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
-          <FileText className="w-4 h-4 inline mr-2" />
-          By Course
+          <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+          <span className="truncate">By Course</span>
         </button>
         <button
           onClick={() => setActiveTab("students")}
-          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+          className={`flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center justify-center ${
             activeTab === "students"
               ? "bg-white text-indigo-600 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
-          <Users className="w-4 h-4 inline mr-2" />
-          By Student
+          <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+          <span className="truncate">By Student</span>
         </button>
       </div>
 
@@ -289,17 +290,17 @@ export default function TeacherResultsView() {
           ) : (
             courses.map((course) => (
               <Card key={course.id}>
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-3">
-                      <div className="p-2 bg-indigo-100 rounded-lg">
-                        <FileText className="w-5 h-5 text-indigo-600" />
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0">
+                    <div className="flex items-start space-x-2 sm:space-x-3 min-w-0 flex-1">
+                      <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg flex-shrink-0">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
                           {course.code} - {course.name}
                         </h3>
-                        <p className="text-sm text-gray-600">{course.semester}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 break-words">{course.semester}</p>
                         <p className="text-xs text-gray-500 mt-1">
                           {course.enrolledStudents} students enrolled
                         </p>
@@ -307,33 +308,33 @@ export default function TeacherResultsView() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">
+                  <div className="pt-3 sm:pt-4 border-t border-gray-200">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
                       Students ({course.students.length})
                     </h4>
                     <div className="space-y-2">
                       {course.students.map((student) => (
                         <div
                           key={student.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200"
                         >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-indigo-600" />
+                          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
                             </div>
-                            <div>
-                              <p className="font-medium text-gray-900">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm sm:text-base font-medium text-gray-900 break-words">
                                 {student.name}
                               </p>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-gray-500 break-all">
                                 {student.rollNumber}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">
                             {student.grade ? (
-                              <div className="text-right">
-                                <p className="text-sm font-medium text-gray-900">
+                              <div className="text-left sm:text-right">
+                                <p className="text-xs sm:text-sm font-medium text-gray-900">
                                   {student.grade.marksObtained} / {student.grade.totalMarks}
                                 </p>
                                 <p className="text-xs text-gray-500">
@@ -347,8 +348,10 @@ export default function TeacherResultsView() {
                               size="sm"
                               variant={student.grade ? "outline" : "primary"}
                               onClick={() => handleEnterGrade(course, student)}
+                              className="flex-shrink-0"
                             >
-                              {student.grade ? "Update" : "Enter Grade"}
+                              <span className="hidden sm:inline">{student.grade ? "Update" : "Enter Grade"}</span>
+                              <span className="sm:hidden">{student.grade ? "Update" : "Grade"}</span>
                             </Button>
                           </div>
                         </div>

@@ -63,7 +63,7 @@ export default function Input({
       {label && (
         <label
           htmlFor={name}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
@@ -75,7 +75,7 @@ export default function Input({
         placeholder={placeholder}
         required={required}
         className={`
-          w-full px-4 py-2 border rounded-lg
+          w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base border rounded-lg
           focus:outline-none
           ${error ? "border-red-500" : "border-gray-300"}
           ${className}
@@ -83,7 +83,7 @@ export default function Input({
         {...inputProps}
         {...props}
       />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs sm:text-sm text-red-600">{error}</p>}
     </div>
   );
 }

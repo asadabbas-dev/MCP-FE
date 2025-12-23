@@ -9,9 +9,11 @@ export default function DashboardLayout({ children }) {
     <ToastProvider>
       <div className="flex">
         <Sidebar />
-        <div className="flex-1 lg:ml-64">
+        <div className="flex-1 lg:ml-64 w-full">
           <Header />
-          <main className="pt-16 lg:pt-24 p-4 lg:p-6 bg-gray-50 min-h-screen">{children}</main>
+          <main className="pt-20 sm:pt-16 lg:pt-16 px-3 sm:px-4 md:px-6 py-4 sm:py-6 bg-gray-50 min-h-screen">
+            {children}
+          </main>
         </div>
       </div>
     </ToastProvider>

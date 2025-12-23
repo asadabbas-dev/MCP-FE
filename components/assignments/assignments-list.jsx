@@ -195,22 +195,26 @@ export default function AssignmentsList() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Assignments</h1>
-          <p className="text-gray-600 mt-1">
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header Section with proper spacing */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">
+            Assignments
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
             {isTeacher
               ? "Create and manage assignments"
               : "View and submit your assignments"}
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center flex-wrap gap-2">
           {isTeacher && (
             <Button
               startIcon={<Plus className="w-4 h-4" />}
               onClick={() => setIsCreateModalOpen(true)}
-              size="sm"
+              size="md"
+              className="w-full sm:w-auto whitespace-nowrap"
             >
               Create Assignment
             </Button>
@@ -221,6 +225,7 @@ export default function AssignmentsList() {
                 variant={filter === "all" ? "primary" : "outline"}
                 size="sm"
                 onClick={() => setFilter("all")}
+                className="flex-1 sm:flex-none"
               >
                 All
               </Button>
@@ -228,6 +233,7 @@ export default function AssignmentsList() {
                 variant={filter === "pending" ? "primary" : "outline"}
                 size="sm"
                 onClick={() => setFilter("pending")}
+                className="flex-1 sm:flex-none"
               >
                 Pending
               </Button>
@@ -235,6 +241,7 @@ export default function AssignmentsList() {
                 variant={filter === "submitted" ? "primary" : "outline"}
                 size="sm"
                 onClick={() => setFilter("submitted")}
+                className="flex-1 sm:flex-none"
               >
                 Submitted
               </Button>
@@ -243,7 +250,7 @@ export default function AssignmentsList() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filteredAssignments.length === 0 ? (
           <Card>
             <EmptyState
@@ -259,18 +266,18 @@ export default function AssignmentsList() {
         ) : (
           filteredAssignments.map((assignment) => (
             <Card key={assignment.id}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <FileText className="w-5 h-5 text-indigo-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 flex-shrink-0" />
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                       {assignment.title}
                     </h3>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2">
                     {assignment.course}
                   </p>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">
                     {assignment.description}
                   </p>
                 </div>
@@ -283,11 +290,11 @@ export default function AssignmentsList() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <div className="flex items-center space-x-6 text-sm text-gray-600">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 pt-3 sm:pt-4 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 lg:space-x-6 gap-2 sm:gap-0 text-xs sm:text-sm text-gray-600">
                   <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-2" />
-                    Due: {formatDate(assignment.dueDate)}
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 flex-shrink-0" />
+                    <span>Due: {formatDate(assignment.dueDate)}</span>
                   </div>
                   <div>
                     Total Marks:{" "}
@@ -295,7 +302,7 @@ export default function AssignmentsList() {
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   {assignment.status === "pending" && (
                     <Button
                       size="sm"
@@ -549,23 +556,23 @@ export default function AssignmentsList() {
         {selectedAssignment && (
           <div className="space-y-6">
             {/* Header Section */}
-            <div className="pb-4 border-b border-gray-200">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <FileText className="w-6 h-6 text-indigo-600" />
+            <div className="pb-3 sm:pb-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-3">
+                <div className="flex items-start space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg flex-shrink-0">
+                    <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 break-words">
                       {selectedAssignment.title}
                     </h3>
-                    <p className="text-sm font-medium text-indigo-600">
+                    <p className="text-xs sm:text-sm font-medium text-indigo-600 break-words">
                       {selectedAssignment.course}
                     </p>
                   </div>
                 </div>
                 <span
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-md ${getStatusColor(
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-xs font-semibold rounded-md whitespace-nowrap flex-shrink-0 self-start sm:self-auto ${getStatusColor(
                     selectedAssignment.status
                   )}`}
                 >
@@ -575,37 +582,37 @@ export default function AssignmentsList() {
             </div>
 
             {/* Information Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Clock className="w-4 h-4 text-gray-500" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2">
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Due Date
                   </p>
                 </div>
-                <p className="text-base font-semibold text-gray-900">
+                <p className="text-sm sm:text-base font-semibold text-gray-900">
                   {formatDate(selectedAssignment.dueDate)}
                 </p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center space-x-2 mb-2">
-                  <FileText className="w-4 h-4 text-gray-500" />
+              <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2">
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Total Marks
                   </p>
                 </div>
-                <p className="text-base font-semibold text-gray-900">
+                <p className="text-sm sm:text-base font-semibold text-gray-900">
                   {selectedAssignment.totalMarks}
                 </p>
               </div>
             </div>
 
             {/* Description Section */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
                 Description
               </p>
-              <p className="text-sm leading-relaxed text-gray-700">
+              <p className="text-xs sm:text-sm leading-relaxed text-gray-700 break-words">
                 {selectedAssignment.description}
               </p>
             </div>
@@ -626,16 +633,16 @@ export default function AssignmentsList() {
         {selectedAssignment && (
           <div className="space-y-6">
             {/* Header Section */}
-            <div className="pb-4 border-b border-gray-200">
-              <div className="flex items-start space-x-3 mb-3">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <FileText className="w-6 h-6 text-indigo-600" />
+            <div className="pb-3 sm:pb-4 border-b border-gray-200">
+              <div className="flex items-start space-x-2 sm:space-x-3 mb-3">
+                <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg flex-shrink-0">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 break-words">
                     {selectedAssignment.title}
                   </h3>
-                  <p className="text-sm font-medium text-indigo-600">
+                  <p className="text-xs sm:text-sm font-medium text-indigo-600 break-words">
                     {selectedAssignment.course}
                   </p>
                 </div>
@@ -643,34 +650,34 @@ export default function AssignmentsList() {
             </div>
 
             {/* Submission Status */}
-            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <CheckCircle className="w-5 h-5 text-indigo-600" />
-                <p className="text-sm font-semibold text-indigo-900 uppercase tracking-wide">
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 flex-shrink-0" />
+                <p className="text-xs sm:text-sm font-semibold text-indigo-900 uppercase tracking-wide">
                   Submitted Successfully
                 </p>
               </div>
-              <div className="flex items-center space-x-2 pl-7">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 sm:space-x-2 pl-0 sm:pl-7">
                 <p className="text-xs font-medium text-gray-500">
                   Submitted Date
                 </p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-xs sm:text-sm font-semibold text-gray-900">
                   {formatDate(selectedAssignment.dueDate)}
                 </p>
               </div>
             </div>
 
             {/* Submitted File Section */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
                 Submitted File
               </p>
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
-                    <FileText className="w-5 h-5 text-indigo-600" />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 p-2 sm:p-3 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg flex-shrink-0">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                   </div>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                     assignment_submission.pdf
                   </span>
                 </div>
@@ -678,6 +685,7 @@ export default function AssignmentsList() {
                   size="sm"
                   variant="outline"
                   startIcon={<Download className="w-4 h-4" />}
+                  className="w-full sm:w-auto"
                 >
                   Download
                 </Button>
@@ -685,23 +693,23 @@ export default function AssignmentsList() {
             </div>
 
             {/* Comments Section */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
                 Comments
               </p>
-              <p className="text-sm leading-relaxed text-gray-700">
+              <p className="text-xs sm:text-sm leading-relaxed text-gray-700 break-words">
                 Submitted as per requirements. All tasks completed.
               </p>
             </div>
 
             {/* Grading Status Section */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
                 Grading Status
               </p>
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-gray-500" />
-                <p className="text-sm font-medium text-gray-700">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
+                <p className="text-xs sm:text-sm font-medium text-gray-700">
                   Not graded yet
                 </p>
               </div>

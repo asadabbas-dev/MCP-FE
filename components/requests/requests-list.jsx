@@ -105,19 +105,22 @@ export default function RequestsList() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header Section with proper spacing */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">
             Requests & Feedback
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm sm:text-base text-gray-600">
             Submit requests and provide feedback to faculty
           </p>
         </div>
         <Button
           startIcon={<FileQuestion className="w-4 h-4" />}
           onClick={() => setIsNewRequestModalOpen(true)}
+          size="md"
+          className="w-full sm:w-auto whitespace-nowrap"
         >
           New Request
         </Button>
@@ -149,23 +152,25 @@ export default function RequestsList() {
         ) : (
           requests.map((request) => (
           <Card key={request.id}>
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  {getStatusIcon(request.status)}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start space-x-2 sm:space-x-3 mb-2">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getStatusIcon(request.status)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
                       {request.subject}
                     </h3>
-                    <p className="text-sm text-indigo-600">{request.type}</p>
+                    <p className="text-xs sm:text-sm text-indigo-600 break-words">{request.type}</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-xs sm:text-sm text-gray-600 mt-2 break-words">
                   {request.description}
                 </p>
               </div>
               <span
-                className={`px-3 py-1 text-xs font-medium rounded-md ${getStatusColor(
+                className={`px-2 sm:px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap flex-shrink-0 self-start sm:self-auto ${getStatusColor(
                   request.status
                 )}`}
               >
@@ -174,16 +179,16 @@ export default function RequestsList() {
             </div>
 
             {request.response && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-4">
-                <p className="text-sm font-medium text-blue-900 mb-1">
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mb-3 sm:mb-4">
+                <p className="text-xs sm:text-sm font-medium text-blue-900 mb-1">
                   Response:
                 </p>
-                <p className="text-sm text-blue-800">{request.response}</p>
+                <p className="text-xs sm:text-sm text-blue-800 break-words">{request.response}</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <span className="text-sm text-gray-600">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 pt-3 sm:pt-4 border-t border-gray-200">
+              <span className="text-xs sm:text-sm text-gray-600">
                 Submitted:{" "}
                 {new Date(request.submittedDate).toLocaleDateString()}
               </span>
@@ -194,6 +199,7 @@ export default function RequestsList() {
                   setSelectedRequest(request);
                   setIsViewDetailsModalOpen(true);
                 }}
+                className="w-full sm:w-auto"
               >
                 View Details
               </Button>
@@ -216,23 +222,23 @@ export default function RequestsList() {
         {selectedRequest && (
           <div className="space-y-6">
             {/* Header Section */}
-            <div className="pb-4 border-b border-gray-200">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start space-x-3">
-                  <div className="p-2 bg-indigo-100 rounded-lg">
+            <div className="pb-3 sm:pb-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-3">
+                <div className="flex items-start space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg flex-shrink-0">
                     {getStatusIcon(selectedRequest.status)}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 break-words">
                       {selectedRequest.subject}
                     </h3>
-                    <p className="text-sm font-medium text-indigo-600">
+                    <p className="text-xs sm:text-sm font-medium text-indigo-600 break-words">
                       {selectedRequest.type}
                     </p>
                   </div>
                 </div>
                 <span
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-md ${getStatusColor(
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-xs font-semibold rounded-md whitespace-nowrap flex-shrink-0 self-start sm:self-auto ${getStatusColor(
                     selectedRequest.status
                   )}`}
                 >
@@ -242,40 +248,40 @@ export default function RequestsList() {
             </div>
 
             {/* Information Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Clock className="w-4 h-4 text-gray-500" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2">
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Submitted Date
                   </p>
                 </div>
-                <p className="text-base font-semibold text-gray-900">
+                <p className="text-sm sm:text-base font-semibold text-gray-900">
                   {new Date(selectedRequest.submittedDate).toLocaleDateString()}
                 </p>
               </div>
             </div>
 
             {/* Description Section */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
                 Description
               </p>
-              <p className="text-sm leading-relaxed text-gray-700">
+              <p className="text-xs sm:text-sm leading-relaxed text-gray-700 break-words">
                 {selectedRequest.description}
               </p>
             </div>
 
             {/* Response Section */}
             {selectedRequest.response && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center space-x-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                  <p className="text-sm font-semibold text-blue-900 uppercase tracking-wide">
+              <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                  <p className="text-xs sm:text-sm font-semibold text-blue-900 uppercase tracking-wide">
                     Response
                   </p>
                 </div>
-                <p className="text-sm leading-relaxed text-blue-800">
+                <p className="text-xs sm:text-sm leading-relaxed text-blue-800 break-words">
                   {selectedRequest.response}
                 </p>
               </div>

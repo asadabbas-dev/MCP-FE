@@ -128,7 +128,7 @@ export default function Select({
       {label && (
         <label
           htmlFor={name}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
@@ -167,7 +167,7 @@ export default function Select({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={`
-            w-full px-4 py-2.5 text-left bg-white border rounded-lg
+            w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-left bg-white border rounded-lg
             flex items-center justify-between
             transition-colors duration-200
             ${error ? "border-red-500" : "border-gray-300"}
@@ -187,7 +187,7 @@ export default function Select({
             {getDisplayText()}
           </span>
           <ChevronDown
-            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+            className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ${
               isOpen ? "transform rotate-180" : ""
             }`}
           />
@@ -238,7 +238,7 @@ export default function Select({
         )}
       </div>
 
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs sm:text-sm text-red-600">{error}</p>}
     </div>
   );
 }

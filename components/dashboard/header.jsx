@@ -113,20 +113,23 @@ export default function Header() {
   }, [isSearchOpen]);
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 fixed top-0 right-0 left-0 lg:left-64 z-10">
-      <div className="h-full px-4 lg:px-6 flex items-center justify-between">
-        <div className="flex-1 max-w-xl relative ml-12 lg:ml-0" ref={searchRef}>
+    <header className="bg-white border-b border-gray-200 h-14 sm:h-16 fixed top-0 right-0 left-0 lg:left-64 z-10">
+      <div className="h-full px-2 sm:px-4 lg:px-6 flex items-center justify-between gap-2 sm:gap-4">
+        <div
+          className="flex-1 max-w-xl relative ml-11 sm:ml-0 min-w-0"
+          ref={searchRef}
+        >
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+            <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             </div>
             <input
               type="text"
-              placeholder="Search courses, assignments..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => searchQuery && setIsSearchOpen(true)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none"
+              className="block w-full pl-8 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none"
             />
           </div>
           {isSearchOpen && searchResults !== undefined && (
@@ -140,7 +143,7 @@ export default function Header() {
           )}
         </div>
 
-        <div className="flex items-center space-x-2 lg:space-x-4">
+        <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 flex-shrink-0">
           <NotificationsDropdown />
           <ProfileDropdown />
         </div>

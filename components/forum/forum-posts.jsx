@@ -97,17 +97,20 @@ export default function ForumPosts() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Forum</h1>
-          <p className="text-gray-600 mt-1">
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header Section with proper spacing */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">Community Forum</h1>
+          <p className="text-sm sm:text-base text-gray-600">
             Discuss and interact with your classmates and teachers
           </p>
         </div>
         <Button
           startIcon={<MessageSquare className="w-4 h-4" />}
           onClick={() => setIsNewPostModalOpen(true)}
+          size="md"
+          className="w-full sm:w-auto whitespace-nowrap"
         >
           New Post
         </Button>
@@ -144,33 +147,31 @@ export default function ForumPosts() {
               className="hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => setSelectedPost(post)}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start space-x-3 flex-1">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-indigo-600" />
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2 mb-1 flex-wrap">
+                    {post.isPinned && (
+                      <Pin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 flex-shrink-0" />
+                    )}
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 break-words">
+                      {post.title}
+                    </h3>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      {post.isPinned && (
-                        <Pin className="w-4 h-4 text-yellow-500" />
-                      )}
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {post.title}
-                      </h3>
-                    </div>
-                    <p className="text-sm text-indigo-600 mb-2">{post.course}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>by {post.author}</span>
-                      <span>•</span>
-                      <span>{post.replies} replies</span>
-                      <span>•</span>
-                      <span>{post.views} views</span>
-                      <span>•</span>
-                      <span className="flex items-center">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {post.time}
-                      </span>
-                    </div>
+                  <p className="text-xs sm:text-sm text-indigo-600 mb-2 break-words">{post.course}</p>
+                  <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-600">
+                    <span className="break-words">by {post.author}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span>{post.replies} replies</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span>{post.views} views</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="flex items-center">
+                      <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
+                      {post.time}
+                    </span>
                   </div>
                 </div>
               </div>

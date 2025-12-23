@@ -123,10 +123,10 @@ export default function FeedbackForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
           Rating <span className="text-red-500">*</span>
         </label>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2 flex-wrap">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
@@ -134,10 +134,10 @@ export default function FeedbackForm({
               onClick={() => handleRatingClick(value)}
               onMouseEnter={() => setHoveredRating(value)}
               onMouseLeave={() => setHoveredRating(0)}
-              className="focus:outline-none"
+              className="focus:outline-none p-1"
             >
               <Star
-                className={`w-6 h-6 transition-colors ${
+                className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors ${
                   value <= (hoveredRating || rating)
                     ? "text-yellow-400 fill-current"
                     : "text-gray-300"
@@ -146,38 +146,38 @@ export default function FeedbackForm({
             </button>
           ))}
           {rating > 0 && (
-            <span className="text-sm text-gray-600 ml-2">({rating}/5)</span>
+            <span className="text-xs sm:text-sm text-gray-600 ml-1 sm:ml-2">({rating}/5)</span>
           )}
         </div>
         {errors.rating && (
-          <p className="mt-1 text-sm text-red-600">{errors.rating.message}</p>
+          <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.rating.message}</p>
         )}
       </div>
 
       <div>
         <label
           htmlFor="comment"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
         >
           Comment <span className="text-red-500">*</span>
         </label>
         <textarea
           id="comment"
           {...register("comment")}
-          rows={6}
+          rows={5}
           placeholder="Write your feedback here..."
-          className="block w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none resize-none"
+          className="block w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none resize-none"
         />
         {errors.comment && (
-          <p className="mt-1 text-sm text-red-600">{errors.comment.message}</p>
+          <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.comment.message}</p>
         )}
       </div>
 
-      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-        <Button type="button" variant="outline" onClick={handleCancel}>
+      <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
+        <Button type="button" variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
           Cancel
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
           {loading && (
             <span className="mr-2">
               <Loading size="sm" />

@@ -50,31 +50,32 @@ export default function Modal({
   if (!isOpen) return null;
 
   const sizes = {
-    sm: "max-w-md",
-    md: "max-w-lg",
-    lg: "max-w-2xl",
-    xl: "max-w-4xl",
+    sm: "max-w-sm sm:max-w-md",
+    md: "max-w-sm sm:max-w-lg",
+    lg: "max-w-lg sm:max-w-2xl",
+    xl: "max-w-2xl sm:max-w-4xl",
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black bg-opacity-50"
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl w-full ${sizes[size]} max-h-[90vh] overflow-y-auto`}
+        className={`bg-white rounded-lg shadow-xl w-full ${sizes[size]} max-h-[95vh] sm:max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-primary border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">{title}</h2>
+        <div className="sticky top-0 bg-primary border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-semibold text-white truncate pr-2">{title}</h2>
           <button
             onClick={onClose}
-            className="text-white hover:text-gray-200 focus:outline-none"
+            className="text-white hover:text-gray-200 focus:outline-none flex-shrink-0"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );

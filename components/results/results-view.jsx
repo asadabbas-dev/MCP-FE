@@ -204,15 +204,18 @@ export default function ResultsView() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Academic Results</h1>
-          <p className="text-gray-600 mt-1">
+    <div className="space-y-5 sm:space-y-6">
+      {/* Header Section with proper spacing */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">
+            Academic Results
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
             View your semester results and CGPA
           </p>
         </div>
-        <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center space-x-1 sm:space-x-2 bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setSelectedView("dmc")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
