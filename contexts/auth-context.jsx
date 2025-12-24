@@ -102,6 +102,7 @@ export function AuthProvider({ children }) {
     updateRole,
     isStudent: role === "student",
     isTeacher: role === "teacher",
+    isAdmin: role === "admin",
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

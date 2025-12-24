@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/common/card";
 import Button from "@/components/common/button";
 import Modal from "@/components/common/modal";
@@ -43,45 +43,87 @@ import {
  */
 
 export default function NotificationsList() {
-  const { isTeacher } = useAuth();
+  const { isTeacher, isAdmin, role } = useAuth();
   const { success, error } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "alert",
-      title: "Assignment Due Tomorrow",
-      message: "Data Structures Project is due on December 25, 2024",
-      time: "2 hours ago",
-      course: "CS201 - Data Structures",
-    },
-    {
-      id: 2,
-      type: "info",
-      title: "New Course Material Available",
-      message: "Lecture slides for Week 12 have been uploaded",
-      time: "5 hours ago",
-      course: "CS301 - Database Systems",
-    },
-    {
-      id: 3,
-      type: "warning",
-      title: "Library Book Due Soon",
-      message: 'Your book "Introduction to Algorithms" is due in 2 days',
-      time: "1 day ago",
-      course: null,
-    },
-    {
-      id: 4,
-      type: "info",
-      title: "Exam Schedule Released",
-      message: "Final exam schedule for Fall 2024 has been published",
-      time: "2 days ago",
-      course: null,
-      read: false,
-    },
-  ]);
+  
+  // Initialize notifications based on role
+  const getInitialNotifications = () => {
+    // Check if using mock token - use mock data directly
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token && token.startsWith("mock-token-")) {
+      if (isAdmin) {
+        const { mockAdminNotifications } = require("@/lib/mock-data/admin-mock-data");
+        return mockAdminNotifications;
+      } else if (isTeacher) {
+        const { mockTeacherNotifications } = require("@/lib/mock-data/admin-mock-data");
+        return mockTeacherNotifications;
+      } else {
+        const { mockStudentNotifications } = require("@/lib/mock-data/admin-mock-data");
+        return mockStudentNotifications;
+      }
+    }
+    
+    // Default student notifications for real users
+    return [
+      {
+        id: 1,
+        type: "alert",
+        title: "Assignment Due Tomorrow",
+        message: "Data Structures Project is due on December 25, 2024",
+        time: "2 hours ago",
+        course: "CS201 - Data Structures",
+        read: false,
+      },
+      {
+        id: 2,
+        type: "info",
+        title: "New Course Material Available",
+        message: "Lecture slides for Week 12 have been uploaded",
+        time: "5 hours ago",
+        course: "CS301 - Database Systems",
+        read: false,
+      },
+      {
+        id: 3,
+        type: "warning",
+        title: "Library Book Due Soon",
+        message: 'Your book "Introduction to Algorithms" is due in 2 days',
+        time: "1 day ago",
+        course: null,
+        read: false,
+      },
+      {
+        id: 4,
+        type: "info",
+        title: "Exam Schedule Released",
+        message: "Final exam schedule for Fall 2024 has been published",
+        time: "2 days ago",
+        course: null,
+        read: false,
+      },
+    ];
+  };
+  
+  const [notifications, setNotifications] = useState(getInitialNotifications());
+
+  // Update notifications when role changes (for mock users)
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token && token.startsWith("mock-token-")) {
+      if (isAdmin) {
+        const { mockAdminNotifications } = require("@/lib/mock-data/admin-mock-data");
+        setNotifications(mockAdminNotifications);
+      } else if (isTeacher) {
+        const { mockTeacherNotifications } = require("@/lib/mock-data/admin-mock-data");
+        setNotifications(mockTeacherNotifications);
+      } else {
+        const { mockStudentNotifications } = require("@/lib/mock-data/admin-mock-data");
+        setNotifications(mockStudentNotifications);
+      }
+    }
+  }, [isAdmin, isTeacher]);
 
   const handleMarkAsRead = (id) => {
     setNotifications((prev) =>
@@ -158,13 +200,20 @@ export default function NotificationsList() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">
-            {isTeacher ? "Manage Notifications" : "Notifications"}
+            {isAdmin ? "System Notifications" : isTeacher ? "Manage Notifications" : "Notifications"}
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            {isTeacher
+            {isAdmin
+              ? "System alerts and administrative notifications"
+              : isTeacher
               ? "Create and manage notifications for students"
               : "Stay updated with important announcements and alerts"}
-            {!isTeacher && unreadCount > 0 && (
+            {!isAdmin && !isTeacher && unreadCount > 0 && (
+              <span className="ml-2 text-indigo-600 font-medium">
+                ({unreadCount} unread)
+              </span>
+            )}
+            {isAdmin && unreadCount > 0 && (
               <span className="ml-2 text-indigo-600 font-medium">
                 ({unreadCount} unread)
               </span>
@@ -172,7 +221,7 @@ export default function NotificationsList() {
           </p>
         </div>
         <div className="flex items-center flex-wrap gap-2">
-          {isTeacher ? (
+          {isAdmin || isTeacher ? (
             <Button
               startIcon={<Plus className="w-4 h-4" />}
               onClick={() => setIsCreateModalOpen(true)}
@@ -270,8 +319,8 @@ export default function NotificationsList() {
         )}
       </div>
 
-      {/* Create Notification Modal (Teacher Only) */}
-      {isTeacher && (
+      {/* Create Notification Modal (Admin and Teacher) */}
+      {(isAdmin || isTeacher) && (
         <Modal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}

@@ -7,6 +7,7 @@ import { Mail, ArrowLeft } from "lucide-react";
 import Button from "@/components/common/button";
 import Input from "@/components/common/input";
 import Loading from "@/components/common/loading";
+import { api } from "@/lib/utils/api";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -18,19 +19,13 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      // TODO: Replace with actual API call
-      // await api.post('/auth/forgot-password', { email });
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      setSuccess(true);
-    } catch (error) {
+    await api.post("/auth/forgot-password", { email }).catch((error) => {
       console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
+      // Still show success message for security (don't reveal if email exists)
+    });
+
+    setSuccess(true);
+    setLoading(false);
   };
 
   if (success) {

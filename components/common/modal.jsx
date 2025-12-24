@@ -5,16 +5,16 @@ import { useEffect } from "react";
 
 /**
  * Modal Component
- * 
+ *
  * A reusable modal/dialog component with backdrop, close button, and size variants.
  * Prevents body scrolling when open and closes on backdrop click.
- * 
+ *
  * @param {boolean} isOpen - Controls modal visibility
  * @param {function} onClose - Function to call when modal should close
  * @param {string} title - Modal title displayed in header
  * @param {ReactNode} children - Modal content
  * @param {string} size - Modal size: 'sm' | 'md' | 'lg' | 'xl'
- * 
+ *
  * @example
  * <Modal
  *   isOpen={isOpen}
@@ -58,7 +58,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black bg-opacity-50 !mt-0 !pt-0"
       onClick={onClose}
     >
       <div
@@ -66,7 +66,9 @@ export default function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-primary border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <h2 className="text-lg sm:text-xl font-semibold text-white truncate pr-2">{title}</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-white truncate pr-2">
+            {title}
+          </h2>
           <button
             onClick={onClose}
             className="text-white hover:text-gray-200 focus:outline-none flex-shrink-0"
