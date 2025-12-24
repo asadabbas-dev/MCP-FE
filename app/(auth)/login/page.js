@@ -9,6 +9,7 @@ import Input from "@/components/common/input";
 import Alert from "@/components/common/alert";
 import Loading from "@/components/common/loading";
 import { useAuth } from "@/contexts/auth-context";
+import { api } from "@/lib/utils/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,42 +34,98 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    try {
-      // TODO: Replace with actual API call
-      // const response = await api.post('/auth/login', formData);
-      // const userData = response.user;
-      // login(userData); // This will store role automatically
+    // Mock login for demo emails (bypass backend)
+    const mockEmails = {
+      "student@example.com": {
+        id: "mock-student-id",
+        email: "student@example.com",
+        fullName: "John Doe",
+        role: "student",
+        rollNumber: "STU-2024-001",
+        currentSemester: 3,
+        program: "BS Computer Science",
+      },
+      "admin@example.com": {
+        id: "mock-admin-id",
+        email: "admin@example.com",
+        fullName: "Admin User",
+        role: "admin",
+      },
+      "teacher@example.com": {
+        id: "mock-teacher-id",
+        email: "teacher@example.com",
+        fullName: "Dr. Jane Smith",
+        role: "teacher",
+        employeeId: "EMP-2024-001",
+        department: "Computer Science",
+        designation: "Associate Professor",
+      },
+      "teacher@example": {
+        id: "mock-teacher-id",
+        email: "teacher@example",
+        fullName: "Dr. Jane Smith",
+        role: "teacher",
+        employeeId: "EMP-2024-001",
+        department: "Computer Science",
+        designation: "Associate Professor",
+      },
+    };
 
-      // Simulate API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Check if it's a mock email
+    if (mockEmails[formData.email]) {
+      const mockUser = mockEmails[formData.email];
 
-      // Simulate user data from API (in real app, this comes from backend)
-      // For demo: detect role based on email domain or other logic
-      const userRole =
-        formData.email.includes("teacher") || formData.email.includes("faculty")
-          ? "teacher"
-          : "student";
-
-      const userData = {
-        id: 1,
-        email: formData.email,
-        firstName: "John",
-        lastName: userRole === "teacher" ? "Smith (Teacher)" : "Doe",
-        role: userRole,
-        rollNumber: userRole === "student" ? "2021-CS-001" : null,
-      };
+      // Store mock token
+      localStorage.setItem("token", "mock-token-" + mockUser.id);
 
       // Store user data and role
-      login(userData);
-      localStorage.setItem("token", "mock-token-12345");
+      login(mockUser);
+      setLoading(false);
 
       // Redirect to dashboard
       router.push("/dashboard");
-    } catch (err) {
-      setError(err.message || "Login failed. Please check your credentials.");
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    // Regular backend login for other emails
+    const response = await api
+      .post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      })
+      .catch((err) => {
+        setError(err.message || "Login failed. Please check your credentials.");
+        setLoading(false);
+        return null;
+      });
+
+    if (!response) return;
+
+    // Store token
+    localStorage.setItem("token", response.accessToken);
+
+    // Prepare user data for context
+    const userData = {
+      id: response.user.id,
+      email: response.user.email,
+      fullName: response.user.fullName,
+      role: response.user.role,
+      profileImage: response.user.profileImage,
+      // Include role-specific data
+      ...(response.user.rollNumber && { rollNumber: response.user.rollNumber }),
+      ...(response.user.employeeId && { employeeId: response.user.employeeId }),
+      ...(response.user.currentSemester && {
+        currentSemester: response.user.currentSemester,
+      }),
+      ...(response.user.department && { department: response.user.department }),
+    };
+
+    // Store user data and role
+    login(userData);
+    setLoading(false);
+
+    // Redirect to dashboard using router (no page reload)
+    router.push("/dashboard");
   };
 
   return (

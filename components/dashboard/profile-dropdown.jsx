@@ -27,16 +27,13 @@ import { useAuth } from "@/contexts/auth-context";
 
 export default function ProfileDropdown() {
   const router = useRouter();
-  const { user, role, isTeacher, logout } = useAuth();
+  const { user, role, isTeacher, isAdmin, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const userName =
-    user?.firstName && user?.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : user?.firstName || "John Doe";
+  const userName = user?.fullName || "User";
 
-  const userRole = isTeacher ? "Teacher" : "Student";
+  const userRole = isAdmin ? "Admin" : isTeacher ? "Teacher" : "Student";
 
   const handleLogout = () => {
     logout();

@@ -17,6 +17,9 @@ import {
   X,
   Star,
   DollarSign,
+  Users,
+  GraduationCap,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
@@ -51,14 +54,26 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { role, isTeacher } = useAuth();
+  const { role, isTeacher, isAdmin } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   /**
    * Get menu items based on user role
-   * Returns teacher-specific menu or default student menu
+   * Returns admin, teacher-specific menu, or default student menu
    */
   const getMenuItems = () => {
+    if (isAdmin) {
+      // Admin-specific menu items
+      return [
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Students", href: "/admin/students", icon: Users },
+        { name: "Teachers", href: "/admin/teachers", icon: GraduationCap },
+        { name: "Courses", href: "/admin/courses", icon: BookOpen },
+        { name: "Timetable", href: "/admin/timetable", icon: Calendar },
+        { name: "Notifications", href: "/notifications", icon: Bell },
+        { name: "Settings", href: "/settings", icon: Settings },
+      ];
+    }
     if (isTeacher) {
       // Teacher-specific menu items (no Fees, Library, Lost & Found)
       return [
