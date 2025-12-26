@@ -69,6 +69,7 @@ export default function Sidebar() {
         { name: "Students", href: "/admin/students", icon: Users },
         { name: "Teachers", href: "/admin/teachers", icon: GraduationCap },
         { name: "Courses", href: "/admin/courses", icon: BookOpen },
+        { name: "Enrollments", href: "/admin/enrollments", icon: BookOpen },
         { name: "Timetable", href: "/admin/timetable", icon: Calendar },
         { name: "Notifications", href: "/notifications", icon: Bell },
         { name: "Settings", href: "/settings", icon: Settings },

@@ -19,6 +19,7 @@ import { useToast } from "@/contexts/toast-context";
 import Modal from "@/components/common/modal";
 import UpdateCourseForm from "@/components/admin/courses/update-course-form";
 import ConfirmDialog from "@/components/common/confirm-dialog";
+import CreateEnrollmentForm from "@/components/admin/enrollments/create-enrollment-form";
 
 /**
  * Course Detail Component
@@ -48,6 +49,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true); // Initial data loading state
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false); // Edit modal visibility
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // Delete confirmation dialog visibility
+  const [isAssignStudentsModalOpen, setIsAssignStudentsModalOpen] = useState(false); // Assign students modal visibility
   const [submitting, setSubmitting] = useState(false); // Form submission loading state
 
   /**
@@ -197,6 +199,13 @@ export default function CourseDetail() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
+            onClick={() => setIsAssignStudentsModalOpen(true)}
+            startIcon={<User className="w-4 h-4" />}
+          >
+            Assign Students
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => setIsUpdateModalOpen(true)}
             startIcon={<Edit className="w-4 h-4" />}
           >
@@ -316,6 +325,38 @@ export default function CourseDetail() {
             course={course}
             onSubmit={handleUpdateCourse}
             onCancel={() => setIsUpdateModalOpen(false)}
+            loading={submitting}
+          />
+        </Modal>
+      )}
+
+      {/* Assign Students Modal */}
+      {isAssignStudentsModalOpen && course && (
+        <Modal
+          isOpen={isAssignStudentsModalOpen}
+          onClose={() => setIsAssignStudentsModalOpen(false)}
+          title="Assign Students to Course"
+          size="md"
+        >
+          <CreateEnrollmentForm
+            defaultCourseId={course.id}
+            onSubmit={async (data) => {
+              setSubmitting(true);
+              try {
+                await api.post("/enrollments/admin", {
+                  ...data,
+                  courseId: course.id, // Ensure course ID is set
+                });
+                success("Student assigned to course successfully!");
+                setIsAssignStudentsModalOpen(false);
+                fetchCourse(); // Refresh to show updated enrollments
+              } catch (err) {
+                showError(err.message || "Failed to assign student to course");
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+            onCancel={() => setIsAssignStudentsModalOpen(false)}
             loading={submitting}
           />
         </Modal>

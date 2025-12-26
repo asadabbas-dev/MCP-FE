@@ -167,13 +167,6 @@ export default function StudentDetail() {
         <Card>
           <div className="text-center py-8">
             <p className="text-gray-600">Student not found</p>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/admin/students")}
-              className="mt-4"
-            >
-              Back to Students
-            </Button>
           </div>
         </Card>
       </div>
