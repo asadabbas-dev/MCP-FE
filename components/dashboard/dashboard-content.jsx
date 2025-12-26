@@ -53,67 +53,51 @@ export default function DashboardContent() {
     }
   }, [isAdmin]);
 
-  // Check if using mock token
-  const isMockUser = typeof window !== "undefined" && 
-    localStorage.getItem("token")?.startsWith("mock-token-");
-
   const fetchAdminStats = async () => {
     setLoadingStats(true);
     
-    // Check if using mock token - use mock data directly
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (token && token.startsWith("mock-token-")) {
-      // Use mock data directly for mock users
-      const { mockStudents, mockTeachers, mockCourses } = await import("@/lib/mock-data/admin-mock-data");
-      setAdminStats({
-        totalStudents: mockStudents.length,
-        totalTeachers: mockTeachers.length,
-        totalCourses: mockCourses.length,
-        activeUsers: mockStudents.length + mockTeachers.length,
-      });
-      setLoadingStats(false);
-      return;
-    }
-    
     try {
-      // Fetch all data in parallel
-      const [studentsRes, teachersRes, coursesRes] = await Promise.all([
-        api.get("/users?role=student").catch(() => []),
-        api.get("/users?role=teacher").catch(() => []),
-        api.get("/courses").catch(() => []),
-      ]);
-
-      // Handle responses - could be array or object with data property
-      const students = Array.isArray(studentsRes) ? studentsRes : studentsRes?.data || [];
-      const teachers = Array.isArray(teachersRes) ? teachersRes : teachersRes?.data || [];
-      const courses = Array.isArray(coursesRes) ? coursesRes : coursesRes?.data || [];
-      
-      // Use mock data if no real data
-      const { mockStudents, mockTeachers, mockCourses } = await import("@/lib/mock-data/admin-mock-data");
-      const finalStudents = students.length > 0 ? students : mockStudents;
-      const finalTeachers = teachers.length > 0 ? teachers : mockTeachers;
-      const finalCourses = courses.length > 0 ? courses : mockCourses;
-      
-      const activeUsers = [...finalStudents, ...finalTeachers].filter(
-        (u) => u.isActive !== false
-      ).length;
-
+      // Use the admin stats endpoint
+      const stats = await api.get("/users/admin/stats");
       setAdminStats({
-        totalStudents: finalStudents.length,
-        totalTeachers: finalTeachers.length,
-        totalCourses: finalCourses.length,
-        activeUsers,
+        totalStudents: stats.totalStudents || 0,
+        totalTeachers: stats.totalTeachers || 0,
+        totalCourses: stats.totalCourses || 0,
+        activeUsers: stats.activeUsers || 0,
       });
     } catch (error) {
       console.error("Error fetching admin stats:", error);
-      // Use mock data on error
-      const { mockStudents, mockTeachers, mockCourses } = await import("@/lib/mock-data/admin-mock-data");
-      setAdminStats({
-        totalStudents: mockStudents.length,
-        totalTeachers: mockTeachers.length,
-        totalCourses: mockCourses.length,
-        activeUsers: mockStudents.length + mockTeachers.length,
-      });
+      // Fallback: try fetching individual endpoints
+      try {
+        const [studentsRes, teachersRes, coursesRes] = await Promise.all([
+          api.get("/users?role=student").catch(() => []),
+          api.get("/users?role=teacher").catch(() => []),
+          api.get("/courses").catch(() => []),
+        ]);
+
+        const students = Array.isArray(studentsRes) ? studentsRes : studentsRes?.data || [];
+        const teachers = Array.isArray(teachersRes) ? teachersRes : teachersRes?.data || [];
+        const courses = Array.isArray(coursesRes) ? coursesRes : coursesRes?.data || [];
+        
+        const activeUsers = [...students, ...teachers].filter(
+          (u) => u.isActive !== false
+        ).length;
+
+        setAdminStats({
+          totalStudents: students.length,
+          totalTeachers: teachers.length,
+          totalCourses: courses.length,
+          activeUsers,
+        });
+      } catch (fallbackError) {
+        console.error("Error in fallback stats fetch:", fallbackError);
+        setAdminStats({
+          totalStudents: 0,
+          totalTeachers: 0,
+          totalCourses: 0,
+          activeUsers: 0,
+        });
+      }
     } finally {
       setLoadingStats(false);
     }

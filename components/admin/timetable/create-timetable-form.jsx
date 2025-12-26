@@ -27,15 +27,22 @@ import { api } from "@/lib/utils/api";
 
 const createTimetableSchema = yup.object().shape({
   courseId: yup.string().required("Course is required"),
+  teacherId: yup.string().required("Teacher is required"),
   dayOfWeek: yup.string().required("Day of week is required"),
   startTime: yup
     .string()
     .required("Start time is required")
-    .matches(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"),
+    .matches(
+      /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/,
+      "Time must be in HH:MM format"
+    ),
   endTime: yup
     .string()
     .required("End time is required")
-    .matches(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"),
+    .matches(
+      /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/,
+      "Time must be in HH:MM format"
+    ),
   room: yup
     .string()
     .required("Room is required")
@@ -49,7 +56,9 @@ export default function CreateTimetableForm({
   loading = false,
 }) {
   const [courses, setCourses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const [loadingTeachers, setLoadingTeachers] = useState(true);
 
   const {
     register,
@@ -61,6 +70,7 @@ export default function CreateTimetableForm({
     resolver: yupResolver(createTimetableSchema),
     defaultValues: {
       courseId: "",
+      teacherId: "",
       dayOfWeek: "",
       startTime: "",
       endTime: "",
@@ -69,31 +79,35 @@ export default function CreateTimetableForm({
     },
   });
 
-  // Fetch courses list
+  // Fetch courses and teachers list
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get("/courses");
-        const coursesList = Array.isArray(response) ? response : response?.data || [];
-        // Use mock data if no real data
-        if (coursesList.length === 0) {
-          const { mockCourses } = await import("@/lib/mock-data/admin-mock-data");
-          setCourses(mockCourses);
-        } else {
-          setCourses(coursesList);
-        }
+        const [coursesRes, teachersRes] = await Promise.all([
+          api.get("/courses"),
+          api.get("/users?role=teacher"),
+        ]);
+
+        const coursesList = Array.isArray(coursesRes)
+          ? coursesRes
+          : coursesRes?.data || [];
+        const teachersList = Array.isArray(teachersRes)
+          ? teachersRes
+          : teachersRes?.data || [];
+
+        setCourses(coursesList);
+        setTeachers(teachersList);
       } catch (error) {
-        console.error("Error fetching courses:", error);
-        // Use mock data on error
-        import("@/lib/mock-data/admin-mock-data").then(({ mockCourses }) => {
-          setCourses(mockCourses);
-        });
+        console.error("Error fetching data:", error);
+        setCourses([]);
+        setTeachers([]);
       } finally {
         setLoadingCourses(false);
+        setLoadingTeachers(false);
       }
     };
 
-    fetchCourses();
+    fetchData();
   }, []);
 
   const handleFormSubmit = async (data) => {
@@ -128,6 +142,39 @@ export default function CreateTimetableForm({
                 value: course.id,
                 label: `${course.code} - ${course.name}`,
               }))
+            : []
+        }
+      />
+
+      <Select
+        label="Assign Teacher"
+        name="teacherId"
+        register={register}
+        placeholder={
+          loadingTeachers
+            ? "Loading teachers..."
+            : teachers.length === 0
+            ? "No teachers available"
+            : "Select a teacher"
+        }
+        error={errors.teacherId?.message}
+        required
+        disabled={loadingTeachers || teachers.length === 0}
+        options={
+          teachers.length > 0
+            ? teachers.map((teacher) => {
+                const teacherId = teacher.teacher?.id || teacher.id;
+                const teacherName =
+                  teacher.fullName ||
+                  teacher.teacher?.user?.fullName ||
+                  "Teacher";
+                const teacherEmail =
+                  teacher.email || teacher.teacher?.user?.email || "";
+                return {
+                  value: teacherId,
+                  label: `${teacherName} (${teacherEmail})`,
+                };
+              })
             : []
         }
       />
@@ -172,13 +219,38 @@ export default function CreateTimetableForm({
         />
       </div>
 
-      <Input
+      <Select
         label="Room"
         name="room"
-        placeholder="e.g., A-101"
         register={register}
+        placeholder="Select room"
         error={errors.room?.message}
         required
+        options={[
+          "A-101",
+          "A-102",
+          "A-103",
+          "A-104",
+          "A-105",
+          "B-201",
+          "B-202",
+          "B-203",
+          "B-204",
+          "B-205",
+          "C-301",
+          "C-302",
+          "C-303",
+          "C-304",
+          "C-305",
+          "D-401",
+          "D-402",
+          "D-403",
+          "Lab-1",
+          "Lab-2",
+          "Lab-3",
+          "Auditorium",
+          "Conference Room",
+        ]}
       />
 
       <Select
@@ -195,7 +267,10 @@ export default function CreateTimetableForm({
         <Button type="button" variant="outline" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={loading || loadingCourses}>
+        <Button
+          type="submit"
+          disabled={loading || loadingCourses || loadingTeachers}
+        >
           {loading && (
             <span className="mr-2">
               <Loading size="sm" />
@@ -207,4 +282,3 @@ export default function CreateTimetableForm({
     </form>
   );
 }
-

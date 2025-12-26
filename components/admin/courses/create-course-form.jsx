@@ -36,10 +36,8 @@ const createCourseSchema = yup.object().shape({
     .min(3, "Course name must be at least 3 characters")
     .max(200, "Course name must be less than 200 characters"),
   creditHours: yup
-    .number()
-    .required("Credit hours is required")
-    .min(1, "Credit hours must be at least 1")
-    .max(6, "Credit hours must be at most 6"),
+    .string()
+    .required("Credit hours is required"),
   description: yup.string().optional(),
   semester: yup.string().required("Semester is required"),
   teacherId: yup.string().required("Teacher is required"),
@@ -63,7 +61,7 @@ export default function CreateCourseForm({
     defaultValues: {
       code: "",
       name: "",
-      creditHours: 3,
+      creditHours: "3",
       description: "",
       semester: "Fall 2024",
       teacherId: "",
@@ -77,19 +75,10 @@ export default function CreateCourseForm({
         const response = await api.get("/users?role=teacher");
         // If response is an array, use it directly; otherwise extract from response
         const teachersList = Array.isArray(response) ? response : response?.data || [];
-        // Use mock data if no real data
-        if (teachersList.length === 0) {
-          const { mockTeachers } = await import("@/lib/mock-data/admin-mock-data");
-          setTeachers(mockTeachers);
-        } else {
-          setTeachers(teachersList);
-        }
+        setTeachers(teachersList);
       } catch (error) {
         console.error("Error fetching teachers:", error);
-        // Use mock data on error
-        import("@/lib/mock-data/admin-mock-data").then(({ mockTeachers }) => {
-          setTeachers(mockTeachers);
-        });
+        setTeachers([]);
       } finally {
         setLoadingTeachers(false);
       }
@@ -132,30 +121,18 @@ export default function CreateCourseForm({
         required
       />
 
-      <div>
-        <label
-          htmlFor="creditHours"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Credit Hours <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="creditHours"
-          {...register("creditHours")}
-          className="block w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none"
-        >
-          {[1, 2, 3, 4, 5, 6].map((hours) => (
-            <option key={hours} value={hours}>
-              {hours} Credit Hour{hours > 1 ? "s" : ""}
-            </option>
-          ))}
-        </select>
-        {errors.creditHours && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.creditHours.message}
-          </p>
-        )}
-      </div>
+      <Select
+        label="Credit Hours"
+        name="creditHours"
+        register={register}
+        placeholder="Select credit hours"
+        error={errors.creditHours?.message}
+        required
+        options={[1, 2, 3, 4, 5, 6].map((hours) => ({
+          value: hours.toString(),
+          label: `${hours} Credit Hour${hours > 1 ? "s" : ""}`,
+        }))}
+      />
 
       <div>
         <label

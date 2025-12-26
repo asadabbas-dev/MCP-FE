@@ -170,8 +170,8 @@ export default function Select({
             w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base text-left bg-white border rounded-lg
             flex items-center justify-between
             transition-colors duration-200
+            focus:outline-none
             ${error ? "border-red-500" : "border-gray-300"}
-            ${isOpen ? "ring-2 ring-indigo-500 border-indigo-500" : ""}
             ${className}
           `}
         >
