@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/common/card";
 import Button from "@/components/common/button";
 import Modal from "@/components/common/modal";
@@ -9,6 +9,8 @@ import PostDetailsView from "@/components/forum/post-details-view";
 import EmptyState from "@/components/common/empty-state";
 import { MessageSquare, User, Clock, Pin } from "lucide-react";
 import { useToast } from "@/contexts/toast-context";
+import { api } from "@/lib/utils/api";
+import Loading from "@/components/common/loading";
 
 /**
  * Forum Posts Component
@@ -31,61 +33,98 @@ export default function ForumPosts() {
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [posts, setPosts] = useState([]);
   const { success, error: showError } = useToast();
 
+  /**
+   * Fetch all forum posts
+   */
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    setLoadingPosts(true);
+    try {
+      const response = await api.get("/forum/posts");
+      const postsList = Array.isArray(response) ? response : response?.data || [];
+      
+      // Transform posts data for display
+      const transformedPosts = postsList.map((post) => ({
+        id: post.id,
+        title: post.title,
+        author: post.author?.fullName || post.author?.user?.fullName || "Unknown",
+        course: post.course ? `${post.course.code} - ${post.course.name}` : "General",
+        replies: post.replies?.length || 0,
+        views: post.views || 0,
+        time: formatTimeAgo(post.createdAt),
+        isPinned: post.isPinned || false,
+        content: post.content,
+        courseId: post.courseId,
+      }));
+      
+      // Sort: pinned posts first, then by creation date
+      transformedPosts.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return new Date(b.time) - new Date(a.time);
+      });
+      
+      setPosts(transformedPosts);
+    } catch (err) {
+      console.error("Error fetching posts:", err);
+      showError(err.message || "Failed to load posts");
+      setPosts([]);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  /**
+   * Format time ago for display
+   */
+  const formatTimeAgo = (dateString) => {
+    if (!dateString) return "Unknown";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return date.toLocaleDateString();
+  };
+
+  /**
+   * Handle creating a new forum post
+   */
   const handleNewPostSubmit = async (data) => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // await api.post('/forum/posts', data);
-      console.log("Post data:", data);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await api.post("/forum/posts", {
+        title: data.title,
+        content: data.content,
+        courseId: data.courseId || null,
+      });
 
       // Close modal on success
       setIsNewPostModalOpen(false);
       success("Post created successfully!");
+      
+      // Refresh posts list
+      fetchPosts();
     } catch (err) {
       console.error("Post creation error:", err);
-      showError("Failed to create post. Please try again.");
+      showError(err.message || "Failed to create post. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  const posts = [
-    {
-      id: 1,
-      title: "Question about Assignment 3",
-      author: "Ahmed Ali",
-      course: "CS201 - Data Structures",
-      replies: 5,
-      views: 23,
-      time: "2 hours ago",
-      isPinned: true,
-    },
-    {
-      id: 2,
-      title: "Study Group for Final Exam",
-      author: "Sara Khan",
-      course: "CS301 - Database Systems",
-      replies: 12,
-      views: 45,
-      time: "5 hours ago",
-      isPinned: false,
-    },
-    {
-      id: 3,
-      title: "Clarification on Project Requirements",
-      author: "Muhammad Hassan",
-      course: "CS401 - Web Development",
-      replies: 3,
-      views: 18,
-      time: "1 day ago",
-      isPinned: false,
-    },
-  ];
 
   if (selectedPost) {
     return (
@@ -130,7 +169,14 @@ export default function ForumPosts() {
       </Modal>
 
       <div className="space-y-4">
-        {posts.length === 0 ? (
+        {loadingPosts ? (
+          <Card>
+            <div className="text-center py-8">
+              <Loading size="md" />
+              <p className="text-gray-600 mt-3">Loading posts...</p>
+            </div>
+          </Card>
+        ) : posts.length === 0 ? (
           <Card>
             <EmptyState
               icon={MessageSquare}

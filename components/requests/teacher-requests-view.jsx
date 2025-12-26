@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/common/card";
 import Button from "@/components/common/button";
 import Modal from "@/components/common/modal";
@@ -11,7 +11,9 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Select from "@/components/common/select";
+import Input from "@/components/common/input";
 import Loading from "@/components/common/loading";
+import { api } from "@/lib/utils/api";
 
 /**
  * Teacher Requests View Component
@@ -148,72 +150,98 @@ export default function TeacherRequestsView() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isRespondModalOpen, setIsRespondModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingRequests, setLoadingRequests] = useState(true);
   const [filter, setFilter] = useState("all"); // "all", "pending", "in-progress", "resolved", "rejected"
+  const [requests, setRequests] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const requests = [
-    {
-      id: 1,
-      type: "Course Change",
-      subject: "Request to Change Section",
-      description:
-        "I would like to change my section for CS201 from Section A to Section B.",
-      status: "pending",
-      submittedDate: "2024-12-15",
-      studentName: "Ali Ahmed",
-      studentRollNumber: "2021-CS-001",
-      response: null,
-    },
-    {
-      id: 2,
-      type: "Certificate",
-      subject: "Request for Transcript",
-      description: "I need an official transcript for scholarship application.",
-      status: "in-progress",
-      submittedDate: "2024-12-10",
-      studentName: "Sara Khan",
-      studentRollNumber: "2021-CS-002",
-      response:
-        "Your request is being processed. It will be ready in 3-5 business days.",
-    },
-    {
-      id: 3,
-      type: "Other",
-      subject: "Request for Leave",
-      description: "Request for leave of absence due to medical reasons.",
-      status: "resolved",
-      submittedDate: "2024-12-01",
-      studentName: "Ahmed Hassan",
-      studentRollNumber: "2021-CS-003",
-      response:
-        "Your leave request has been approved. Please submit medical documents.",
-    },
-  ];
+  /**
+   * Fetch all student requests
+   */
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
-  const filteredRequests =
-    filter === "all"
-      ? requests
-      : requests.filter((req) => req.status === filter);
+  const fetchRequests = async () => {
+    setLoadingRequests(true);
+    try {
+      const response = await api.get("/requests");
+      const requestsList = Array.isArray(response) ? response : response?.data || [];
+      
+      // Transform requests data for display
+      const transformedRequests = requestsList.map((request) => ({
+        id: request.id,
+        type: request.type || "Other",
+        subject: request.subject,
+        description: request.description,
+        status: request.status || "pending",
+        submittedDate: request.createdAt || request.submittedDate,
+        studentName: request.student?.user?.fullName || "Unknown",
+        studentRollNumber: request.student?.rollNumber || "N/A",
+        response: request.response || null,
+      }));
+      
+      setRequests(transformedRequests);
+    } catch (err) {
+      console.error("Error fetching requests:", err);
+      error(err.message || "Failed to load requests");
+      setRequests([]);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const filteredRequests = requests.filter((req) => {
+    // Filter by status
+    if (filter !== "all" && req.status !== filter) {
+      return false;
+    }
+    
+    // Filter by search query (student name, roll number, subject, type)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesName = req.studentName?.toLowerCase().includes(query);
+      const matchesRollNumber = req.studentRollNumber?.toLowerCase().includes(query);
+      const matchesSubject = req.subject?.toLowerCase().includes(query);
+      const matchesType = req.type?.toLowerCase().includes(query);
+      
+      if (!matchesName && !matchesRollNumber && !matchesSubject && !matchesType) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
 
   const handleRespond = (request) => {
     setSelectedRequest(request);
     setIsRespondModalOpen(true);
   };
 
+  /**
+   * Handle submitting response to a request
+   * Updates request status and adds response
+   */
   const handleSubmitResponse = async (data) => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // await api.post(`/requests/${data.requestId}/respond`, data);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Map status to backend format (in-progress -> in_progress)
+      const status = data.status === "in-progress" ? "in_progress" : data.status;
+      
+      await api.patch(`/requests/${data.requestId}/respond`, {
+        response: data.response,
+        status: status,
+      });
 
       setIsRespondModalOpen(false);
       setSelectedRequest(null);
       success("Response submitted successfully!");
+      
+      // Refresh requests list
+      fetchRequests();
     } catch (err) {
       console.error("Error submitting response:", err);
-      error("Failed to submit response. Please try again.");
+      error(err.message || "Failed to submit response. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -265,25 +293,58 @@ export default function TeacherRequestsView() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 rounded-lg p-1">
-        {["all", "pending", "in-progress", "resolved", "rejected"].map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`flex-1 min-w-[80px] sm:min-w-0 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors capitalize ${
-              filter === status
-                ? "bg-white text-indigo-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            {status === "all" ? "All" : status.replace("-", " ")}
-          </button>
-        ))}
-      </div>
+      <Card className="p-3 sm:p-4">
+        <div className="space-y-3">
+          <div className="flex-1">
+            <Input
+              name="searchRequests"
+              placeholder="Search by student name, roll number, subject, or type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 bg-gray-100 rounded-lg p-1">
+            {["all", "pending", "in-progress", "resolved", "rejected"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilter(status)}
+                className={`flex-1 min-w-[80px] sm:min-w-0 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors capitalize ${
+                  filter === status
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                {status === "all" ? "All" : status.replace("-", " ")}
+              </button>
+            ))}
+          </div>
+          {(filter !== "all" || searchQuery) && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setFilter("all");
+                  setSearchQuery("");
+                }}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
 
       {/* Requests List */}
       <div className="space-y-4">
-        {filteredRequests.length === 0 ? (
+        {loadingRequests ? (
+          <Card>
+            <div className="text-center py-8">
+              <Loading size="md" />
+              <p className="text-gray-600 mt-3">Loading requests...</p>
+            </div>
+          </Card>
+        ) : filteredRequests.length === 0 ? (
           <Card>
             <EmptyState
               icon={FileQuestion}

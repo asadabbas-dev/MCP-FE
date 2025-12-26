@@ -1,69 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/common/card";
 import { MessageSquare, Star, User, Calendar, Filter } from "lucide-react";
 import EmptyState from "@/components/common/empty-state";
 import Select from "@/components/common/select";
+import { api } from "@/lib/utils/api";
+import { useToast } from "@/contexts/toast-context";
+import { useAuth } from "@/contexts/auth-context";
+import Loading from "@/components/common/loading";
 
 export default function TeacherFeedbackView() {
+  const { user } = useAuth();
+  const { error: showError } = useToast();
   const [filter, setFilter] = useState("all"); // "all", "teacher", "course", "system"
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
+  const [feedbacks, setFeedbacks] = useState([]);
 
-  const feedbacks = [
-    {
-      id: 1,
-      targetType: "Teacher",
-      targetName: "You",
-      studentName: "Ali Ahmed",
-      studentRollNumber: "2021-CS-001",
-      rating: 5,
-      comment:
-        "Excellent teaching methodology. Very clear explanations and helpful during office hours.",
-      createdAt: "2024-12-10",
-    },
-    {
-      id: 2,
-      targetType: "Course",
-      targetName: "CS201 - Data Structures",
-      studentName: "Sara Khan",
-      studentRollNumber: "2021-CS-002",
-      rating: 4,
-      comment:
-        "Great course content, but assignments could be more challenging.",
-      createdAt: "2024-12-08",
-    },
-    {
-      id: 3,
-      targetType: "Teacher",
-      targetName: "You",
-      studentName: "Ahmed Hassan",
-      studentRollNumber: "2021-CS-003",
-      rating: 5,
-      comment:
-        "Best teacher! Always available to help and provides detailed feedback.",
-      createdAt: "2024-12-05",
-    },
-    {
-      id: 4,
-      targetType: "Course",
-      targetName: "CS301 - Database Systems",
-      studentName: "Fatima Ali",
-      studentRollNumber: "2021-CS-004",
-      rating: 3,
-      comment: "Course is good but needs more practical examples.",
-      createdAt: "2024-12-01",
-    },
-    {
-      id: 5,
-      targetType: "System",
-      targetName: "MCP Portal",
-      studentName: "Muhammad Usman",
-      studentRollNumber: "2021-CS-005",
-      rating: 5,
-      comment: "The portal is very user-friendly and efficient.",
-      createdAt: "2024-11-28",
-    },
-  ];
+  /**
+   * Fetch feedback for teacher
+   * Gets feedback about the teacher and their courses
+   */
+  useEffect(() => {
+    fetchFeedbacks();
+  }, [user]);
+
+  const fetchFeedbacks = async () => {
+    setLoadingFeedbacks(true);
+    try {
+      // Fetch all feedback, then filter for this teacher
+      const response = await api.get("/feedback");
+      const feedbacksList = Array.isArray(response) ? response : response?.data || [];
+      
+      // Get teacher ID from user profile
+      let teacherId = null;
+      try {
+        const userProfile = await api.get("/users/profile");
+        teacherId = userProfile?.teacher?.id;
+      } catch (profileErr) {
+        console.error("Error fetching user profile:", profileErr);
+      }
+      
+      // Filter feedback relevant to this teacher
+      // Include: feedback about this teacher, feedback about their courses, and system feedback
+      const relevantFeedbacks = feedbacksList
+        .filter((fb) => {
+          // Include teacher feedback if targetId matches teacher ID
+          if (fb.targetType === "Teacher" && teacherId && fb.targetId === teacherId) {
+            return true;
+          }
+          // Include course feedback if course is assigned to this teacher
+          if (fb.targetType === "Course" && teacherId) {
+            // We'll need to check if the course belongs to this teacher
+            // For now, include all course feedback
+            return true;
+          }
+          // Include system feedback
+          if (fb.targetType === "System") {
+            return true;
+          }
+          return false;
+        })
+        .map((fb) => {
+          const student = fb.student;
+          return {
+            id: fb.id,
+            targetType: fb.targetType,
+            targetName: fb.targetType === "Teacher" ? "You" : (fb.targetName || "Unknown"),
+            studentName: student?.user?.fullName || "Unknown",
+            studentRollNumber: student?.rollNumber || "N/A",
+            rating: fb.rating,
+            comment: fb.comment,
+            createdAt: fb.createdAt,
+          };
+        });
+      
+      setFeedbacks(relevantFeedbacks);
+    } catch (err) {
+      console.error("Error fetching feedback:", err);
+      showError(err.message || "Failed to load feedback");
+      setFeedbacks([]);
+    } finally {
+      setLoadingFeedbacks(false);
+    }
+  };
 
   const filteredFeedbacks =
     filter === "all"
@@ -180,7 +200,14 @@ export default function TeacherFeedbackView() {
 
       {/* Feedback List */}
       <div className="space-y-4">
-        {filteredFeedbacks.length === 0 ? (
+        {loadingFeedbacks ? (
+          <Card>
+            <div className="text-center py-8">
+              <Loading size="md" />
+              <p className="text-gray-600 mt-3">Loading feedback...</p>
+            </div>
+          </Card>
+        ) : filteredFeedbacks.length === 0 ? (
           <Card>
             <EmptyState
               icon={MessageSquare}

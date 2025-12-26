@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/common/card";
 import Button from "@/components/common/button";
 import Modal from "@/components/common/modal";
@@ -11,6 +11,8 @@ import * as yup from "yup";
 import Input from "@/components/common/input";
 import Loading from "@/components/common/loading";
 import { useToast } from "@/contexts/toast-context";
+import { api } from "@/lib/utils/api";
+import { useAuth } from "@/contexts/auth-context";
 
 const replySchema = yup.object().shape({
   content: yup
@@ -21,31 +23,73 @@ const replySchema = yup.object().shape({
 });
 
 export default function PostDetailsView({ post, onBack }) {
-  const [replies, setReplies] = useState([
-    {
-      id: 1,
-      author: "Dr. Sara Khan",
-      content: "Great question! For Assignment 3, you need to implement the binary search tree with all the required operations. Make sure to handle edge cases.",
-      time: "1 hour ago",
-      isTeacher: true,
-    },
-    {
-      id: 2,
-      author: "Ahmed Ali",
-      content: "Thanks for the clarification! I was confused about the deletion operation.",
-      time: "30 minutes ago",
-      isTeacher: false,
-    },
-    {
-      id: 3,
-      author: "Muhammad Hassan",
-      content: "I can help you with that. Let's discuss in the study group.",
-      time: "15 minutes ago",
-      isTeacher: false,
-    },
-  ]);
+  const { isTeacher } = useAuth();
+  const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingReplies, setLoadingReplies] = useState(true);
+  const [postDetails, setPostDetails] = useState(post);
   const { success, error } = useToast();
+
+  /**
+   * Fetch post details and replies
+   */
+  useEffect(() => {
+    if (post?.id) {
+      fetchPostDetails();
+    }
+  }, [post?.id]);
+
+  const fetchPostDetails = async () => {
+    setLoadingReplies(true);
+    try {
+      const response = await api.get(`/forum/posts/${post.id}`);
+      
+      // Transform post data
+      const transformedPost = {
+        ...post,
+        content: response.content || post.content,
+        author: response.author?.fullName || response.author?.user?.fullName || post.author,
+        course: response.course ? `${response.course.code} - ${response.course.name}` : post.course,
+      };
+      setPostDetails(transformedPost);
+      
+      // Transform replies data
+      const repliesList = response.replies || [];
+      const transformedReplies = repliesList.map((reply) => ({
+        id: reply.id,
+        author: reply.author?.fullName || reply.author?.user?.fullName || "Unknown",
+        content: reply.content,
+        time: formatTimeAgo(reply.createdAt),
+        isTeacher: reply.author?.role === "teacher" || reply.author?.user?.role === "teacher",
+      }));
+      
+      setReplies(transformedReplies);
+    } catch (err) {
+      console.error("Error fetching post details:", err);
+      error(err.message || "Failed to load post details");
+    } finally {
+      setLoadingReplies(false);
+    }
+  };
+
+  /**
+   * Format time ago for display
+   */
+  const formatTimeAgo = (dateString) => {
+    if (!dateString) return "Unknown";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return date.toLocaleDateString();
+  };
 
   const {
     register,
@@ -59,28 +103,23 @@ export default function PostDetailsView({ post, onBack }) {
     },
   });
 
+  /**
+   * Handle submitting a reply to the post
+   */
   const handleReplySubmit = async (data) => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // await api.post(`/forum/posts/${post.id}/replies`, data);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const newReply = {
-        id: replies.length + 1,
-        author: "You",
+      await api.post(`/forum/posts/${post.id}/replies`, {
         content: data.content,
-        time: "Just now",
-        isTeacher: false,
-      };
+      });
 
-      setReplies([...replies, newReply]);
+      // Refresh replies
+      fetchPostDetails();
+      
       reset();
       success("Reply posted successfully!");
     } catch (err) {
-      error("Failed to post reply. Please try again.");
+      error(err.message || "Failed to post reply. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -113,27 +152,23 @@ export default function PostDetailsView({ post, onBack }) {
                     <Pin className="w-4 h-4 text-yellow-500" />
                   )}
                   <h2 className="text-2xl font-bold text-gray-900">
-                    {post.title}
+                    {postDetails.title || post.title}
                   </h2>
                 </div>
-                <p className="text-sm text-indigo-600 mb-3">{post.course}</p>
+                <p className="text-sm text-indigo-600 mb-3">{postDetails.course || post.course}</p>
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                  <span>by {post.author}</span>
+                  <span>by {postDetails.author || post.author}</span>
                   <span>•</span>
                   <span className="flex items-center">
                     <Clock className="w-3 h-3 mr-1" />
-                    {post.time}
+                    {postDetails.time || post.time}
                   </span>
                   <span>•</span>
-                  <span>{post.views} views</span>
+                  <span>{postDetails.views || post.views || 0} views</span>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-sm leading-relaxed text-gray-700">
-                    I'm having trouble understanding the requirements for
-                    Assignment 3. Can someone please clarify what exactly needs
-                    to be implemented? Specifically, I'm confused about the
-                    binary search tree operations and the expected output
-                    format.
+                  <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+                    {postDetails.content || post.content || "No content available."}
                   </p>
                 </div>
               </div>
@@ -150,8 +185,23 @@ export default function PostDetailsView({ post, onBack }) {
           </h3>
         </div>
 
-        <div className="space-y-4 mb-6">
-          {replies.map((reply) => (
+        {loadingReplies ? (
+          <Card>
+            <div className="text-center py-8">
+              <Loading size="sm" />
+              <p className="text-gray-600 mt-2 text-sm">Loading replies...</p>
+            </div>
+          </Card>
+        ) : (
+          <div className="space-y-4 mb-6">
+            {replies.length === 0 ? (
+              <Card>
+                <p className="text-sm text-gray-500 text-center py-4">
+                  No replies yet. Be the first to reply!
+                </p>
+              </Card>
+            ) : (
+              replies.map((reply) => (
             <Card key={reply.id}>
               <div className="flex items-start space-x-3">
                 <div
@@ -186,8 +236,10 @@ export default function PostDetailsView({ post, onBack }) {
                 </div>
               </div>
             </Card>
-          ))}
-        </div>
+              ))
+            )}
+          </div>
+        )}
 
         {/* Reply Form */}
         <Card>

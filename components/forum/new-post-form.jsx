@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -9,6 +9,8 @@ import Input from "@/components/common/input";
 import Select from "@/components/common/select";
 import Loading from "@/components/common/loading";
 import { Upload, X, File } from "lucide-react";
+import { api } from "@/lib/utils/api";
+import { useAuth } from "@/contexts/auth-context";
 
 const newPostSchema = yup.object().shape({
   title: yup
@@ -25,7 +27,11 @@ const newPostSchema = yup.object().shape({
 });
 
 export default function NewPostForm({ onSubmit, onCancel, loading = false }) {
+  const { isTeacher, user } = useAuth();
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  
   const {
     register,
     handleSubmit,
@@ -39,6 +45,50 @@ export default function NewPostForm({ onSubmit, onCancel, loading = false }) {
       courseId: "",
     },
   });
+
+  /**
+   * Fetch courses for dropdown
+   * For teachers: fetch their assigned courses
+   * For students: fetch their enrolled courses
+   */
+  useEffect(() => {
+    fetchCourses();
+  }, [isTeacher, user]);
+
+  const fetchCourses = async () => {
+    setLoadingCourses(true);
+    try {
+      let coursesList = [];
+      
+      if (isTeacher) {
+        // Fetch teacher's assigned courses
+        const response = await api.get("/courses/teacher/my-courses");
+        coursesList = Array.isArray(response) ? response : response?.data || [];
+      } else {
+        // For students, fetch all courses (or enrolled courses if endpoint exists)
+        const response = await api.get("/courses");
+        coursesList = Array.isArray(response) ? response : response?.data || [];
+      }
+      
+      // Transform courses for dropdown
+      const courseOptions = coursesList.map((course) => ({
+        value: course.id,
+        label: `${course.code} - ${course.name}`,
+      }));
+      
+      // Add "General Discussion" option at the beginning
+      setCourses([
+        { value: "", label: "General Discussion" },
+        ...courseOptions,
+      ]);
+    } catch (err) {
+      console.error("Error fetching courses:", err);
+      // Set default "General Discussion" option
+      setCourses([{ value: "", label: "General Discussion" }]);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -85,12 +135,10 @@ export default function NewPostForm({ onSubmit, onCancel, loading = false }) {
         label="Related Course (Optional)"
         name="courseId"
         register={register}
-        placeholder="General Discussion"
-        options={[
-          { value: "1", label: "CS201 - Data Structures" },
-          { value: "2", label: "CS301 - Database Systems" },
-          { value: "3", label: "CS401 - Web Development" },
-        ]}
+        placeholder={loadingCourses ? "Loading courses..." : "General Discussion"}
+        options={courses}
+        error={errors.courseId?.message}
+        disabled={loadingCourses}
       />
 
       <div>

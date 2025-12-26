@@ -53,6 +53,37 @@ export default function DashboardContent() {
     }
   }, [isAdmin]);
 
+  // Fetch teacher stats
+  useEffect(() => {
+    if (isTeacher) {
+      fetchTeacherStats();
+    }
+  }, [isTeacher]);
+
+  /**
+   * Fetch teacher dashboard statistics
+   * Gets assigned courses, total students, pending submissions, etc.
+   */
+  const fetchTeacherStats = async () => {
+    setLoadingTeacherStats(true);
+    try {
+      const response = await api.get("/users/teacher/stats");
+      setTeacherStats(response);
+    } catch (error) {
+      console.error("Error fetching teacher stats:", error);
+      // Set default values on error (no mock data)
+      setTeacherStats({
+        assignedCourses: 0,
+        totalStudents: 0,
+        pendingSubmissions: 0,
+        ungradedSubmissions: 0,
+        pendingRequests: 0,
+      });
+    } finally {
+      setLoadingTeacherStats(false);
+    }
+  };
+
   // Check if using mock token
   const isMockUser = typeof window !== "undefined" && 
     localStorage.getItem("token")?.startsWith("mock-token-");
@@ -120,12 +151,13 @@ export default function DashboardContent() {
   };
 
   // Teacher-specific statistics
-  const teacherStats = {
-    assignedCourses: 3,
-    pendingSubmissions: 12,
-    ungradedSubmissions: 8,
-    pendingRequests: 5,
-  };
+  const [teacherStats, setTeacherStats] = useState({
+    assignedCourses: 0,
+    pendingSubmissions: 0,
+    ungradedSubmissions: 0,
+    pendingRequests: 0,
+  });
+  const [loadingTeacherStats, setLoadingTeacherStats] = useState(false);
 
   // Student-specific statistics
   const studentStats = {
@@ -135,7 +167,7 @@ export default function DashboardContent() {
     libraryBooks: 2,
   };
 
-  const [stats] = useState(isTeacher ? teacherStats : studentStats);
+  const stats = isTeacher ? teacherStats : studentStats;
 
   const [academicInfo] = useState({
     currentGPA: 3.75,
@@ -327,7 +359,7 @@ export default function DashboardContent() {
                     Assigned Courses
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold mt-1">
-                    {stats.assignedCourses}
+                    {loadingTeacherStats ? "..." : stats.assignedCourses}
                   </p>
                 </div>
                 <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-indigo-200 flex-shrink-0 ml-2" />
@@ -341,7 +373,7 @@ export default function DashboardContent() {
                     Pending Submissions
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold mt-1">
-                    {stats.pendingSubmissions}
+                    {loadingTeacherStats ? "..." : stats.pendingSubmissions}
                   </p>
                 </div>
                 <FileText className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-yellow-200 flex-shrink-0 ml-2" />
@@ -355,7 +387,7 @@ export default function DashboardContent() {
                     Ungraded Submissions
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold mt-1">
-                    {stats.ungradedSubmissions}
+                    {loadingTeacherStats ? "..." : stats.ungradedSubmissions}
                   </p>
                 </div>
                 <Clock className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-red-200 flex-shrink-0 ml-2" />
@@ -369,7 +401,7 @@ export default function DashboardContent() {
                     Pending Requests
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold mt-1">
-                    {stats.pendingRequests}
+                    {loadingTeacherStats ? "..." : stats.pendingRequests}
                   </p>
                 </div>
                 <FileQuestion className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-green-200 flex-shrink-0 ml-2" />
@@ -514,7 +546,7 @@ export default function DashboardContent() {
                       Total Students
                     </p>
                     <p className="text-base sm:text-lg font-semibold text-gray-900">
-                      125
+                      {loadingTeacherStats ? "..." : teacherStats.totalStudents || 0}
                     </p>
                   </div>
                   <Users className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 flex-shrink-0 ml-2" />
@@ -523,13 +555,13 @@ export default function DashboardContent() {
                 <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg">
                   <div className="min-w-0 flex-1">
                     <p className="text-xs sm:text-sm text-gray-600">
-                      Average Rating
+                      Assigned Courses
                     </p>
                     <p className="text-xl sm:text-2xl font-bold text-indigo-600">
-                      4.8/5
+                      {loadingTeacherStats ? "..." : teacherStats.assignedCourses || 0}
                     </p>
                   </div>
-                  <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 flex-shrink-0 ml-2" />
+                  <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 flex-shrink-0 ml-2" />
                 </div>
               </div>
             </Card>

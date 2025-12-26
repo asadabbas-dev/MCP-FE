@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/common/card";
 import Modal from "@/components/common/modal";
 import { BookOpen, Users, User, Calendar, Clock } from "lucide-react";
 import EmptyState from "@/components/common/empty-state";
+import { api } from "@/lib/utils/api";
+import { useToast } from "@/contexts/toast-context";
+import Loading from "@/components/common/loading";
+import Select from "@/components/common/select";
+import Input from "@/components/common/input";
+import Button from "@/components/common/button";
 
 /**
  * Teacher Courses View Component
@@ -22,106 +28,127 @@ import EmptyState from "@/components/common/empty-state";
  */
 
 export default function TeacherCoursesView() {
+  const { error: showError } = useToast();
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [assignedCourses, setAssignedCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  
+  // Filters
+  const [semesterFilter, setSemesterFilter] = useState("all");
+  const [sectionFilter, setSectionFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [availableSemesters, setAvailableSemesters] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
 
-  const assignedCourses = [
-    {
-      id: 1,
-      code: "CS201",
-      name: "Data Structures",
-      creditHours: 3,
-      semester: "Fall 2024",
-      enrolledStudents: 45,
-      students: [
-        {
-          id: 1,
-          name: "Ali Ahmed",
-          rollNumber: "2021-CS-001",
-          email: "ali@example.com",
-        },
-        {
-          id: 2,
-          name: "Sara Khan",
-          rollNumber: "2021-CS-002",
-          email: "sara@example.com",
-        },
-        {
-          id: 3,
-          name: "Ahmed Hassan",
-          rollNumber: "2021-CS-003",
-          email: "ahmed@example.com",
-        },
-        {
-          id: 4,
-          name: "Fatima Ali",
-          rollNumber: "2021-CS-004",
-          email: "fatima@example.com",
-        },
-        {
-          id: 5,
-          name: "Muhammad Usman",
-          rollNumber: "2021-CS-005",
-          email: "usman@example.com",
-        },
-      ],
-    },
-    {
-      id: 2,
-      code: "CS301",
-      name: "Database Systems",
-      creditHours: 3,
-      semester: "Fall 2024",
-      enrolledStudents: 38,
-      students: [
-        {
-          id: 1,
-          name: "Ali Ahmed",
-          rollNumber: "2021-CS-001",
-          email: "ali@example.com",
-        },
-        {
-          id: 2,
-          name: "Sara Khan",
-          rollNumber: "2021-CS-002",
-          email: "sara@example.com",
-        },
-        {
-          id: 3,
-          name: "Ahmed Hassan",
-          rollNumber: "2021-CS-003",
-          email: "ahmed@example.com",
-        },
-      ],
-    },
-    {
-      id: 3,
-      code: "CS401",
-      name: "Software Engineering",
-      creditHours: 3,
-      semester: "Fall 2024",
-      enrolledStudents: 42,
-      students: [
-        {
-          id: 1,
-          name: "Ali Ahmed",
-          rollNumber: "2021-CS-001",
-          email: "ali@example.com",
-        },
-        {
-          id: 2,
-          name: "Sara Khan",
-          rollNumber: "2021-CS-002",
-          email: "sara@example.com",
-        },
-      ],
-    },
-  ];
+  /**
+   * Fetch teacher's assigned courses with student count
+   */
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
-  const handleViewDetails = (course) => {
+  const fetchCourses = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/courses/teacher/my-courses");
+      const coursesList = Array.isArray(response) ? response : response?.data || [];
+      setAssignedCourses(coursesList);
+      
+      // Extract unique semesters for filter
+      const semesters = [...new Set(coursesList.map(c => c.semester).filter(Boolean))];
+      setAvailableSemesters([
+        { value: "all", label: "All Semesters" },
+        ...semesters.map(s => ({ value: s, label: s }))
+      ]);
+      
+      // Extract unique sections from all courses
+      const allSections = new Set();
+      for (const course of coursesList) {
+        try {
+          const courseDetails = await api.get(`/courses/${course.id}`);
+          const enrollments = courseDetails?.enrollments || [];
+          enrollments.forEach(e => {
+            if (e.section) allSections.add(e.section);
+          });
+        } catch (err) {
+          // Continue if course details fetch fails
+        }
+      }
+      setAvailableSections([
+        { value: "all", label: "All Sections" },
+        ...Array.from(allSections).map(s => ({ value: s, label: `Section ${s}` }))
+      ]);
+    } catch (err) {
+      console.error("Error fetching courses:", err);
+      showError(err.message || "Failed to load courses");
+      setAssignedCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Fetch enrolled students for a specific course
+   */
+  const fetchCourseStudents = async (courseId) => {
+    setLoadingStudents(true);
+    try {
+      const response = await api.get(`/courses/${courseId}`);
+      const enrollments = response?.enrollments || [];
+      // Transform enrollments to student list
+      const students = enrollments.map((enrollment) => ({
+        id: enrollment.student?.id || enrollment.studentId,
+        name: enrollment.student?.user?.fullName || "Unknown",
+        rollNumber: enrollment.student?.rollNumber || "N/A",
+        email: enrollment.student?.user?.email || "N/A",
+      }));
+      return students;
+    } catch (err) {
+      console.error("Error fetching course students:", err);
+      showError(err.message || "Failed to load students");
+      return [];
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  /**
+   * Handle viewing course details with enrolled students
+   */
+  const handleViewDetails = async (course) => {
     setSelectedCourse(course);
     setIsDetailsModalOpen(true);
+    
+    // Fetch students if not already loaded
+    if (!course.students) {
+      const students = await fetchCourseStudents(course.id);
+      setSelectedCourse({ ...course, students });
+    }
   };
+
+  /**
+   * Filter courses based on selected filters
+   */
+  const filteredCourses = assignedCourses.filter((course) => {
+    // Filter by semester
+    if (semesterFilter !== "all" && course.semester !== semesterFilter) {
+      return false;
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesCode = course.code?.toLowerCase().includes(query);
+      const matchesName = course.name?.toLowerCase().includes(query);
+      if (!matchesCode && !matchesName) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -135,17 +162,28 @@ export default function TeacherCoursesView() {
         </p>
       </div>
 
-      {assignedCourses.length === 0 ? (
+      {loading ? (
         <Card>
-          <EmptyState
-            icon={BookOpen}
-            title="No assigned courses"
-            description="You don't have any assigned courses at the moment."
-          />
+          <div className="text-center py-8">
+            <Loading size="md" />
+            <p className="text-gray-600 mt-3">Loading courses...</p>
+          </div>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {assignedCourses.map((course) => (
+      ) : filteredCourses.length === 0 ? (
+            <Card>
+              <EmptyState
+                icon={BookOpen}
+                title="No courses found"
+                description={
+                  assignedCourses.length === 0
+                    ? "You don't have any assigned courses at the moment."
+                    : "No courses match your filters. Try adjusting your search criteria."
+                }
+              />
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {filteredCourses.map((course) => (
             <Card key={course.id} className="hover:shadow-lg transition-shadow">
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-start justify-between">
@@ -183,7 +221,7 @@ export default function TeacherCoursesView() {
                       Enrolled:
                     </span>
                     <span className="font-medium text-indigo-600">
-                      {course.enrolledStudents} students
+                      {course.studentCount || 0} students
                     </span>
                   </div>
                 </div>
@@ -240,7 +278,7 @@ export default function TeacherCoursesView() {
                     Total Enrolled Students
                   </p>
                   <p className="text-base sm:text-lg font-semibold text-indigo-600">
-                    {selectedCourse.enrolledStudents} students
+                    {selectedCourse.studentCount || selectedCourse.enrolledStudents || 0} students
                   </p>
                 </div>
               </div>
@@ -253,7 +291,12 @@ export default function TeacherCoursesView() {
                 Enrolled Students
               </h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {selectedCourse.students.length === 0 ? (
+                {loadingStudents ? (
+                  <div className="text-center py-8">
+                    <Loading size="sm" />
+                    <p className="text-xs sm:text-sm text-gray-500 mt-2">Loading students...</p>
+                  </div>
+                ) : !selectedCourse.students || selectedCourse.students.length === 0 ? (
                   <p className="text-xs sm:text-sm text-gray-500 text-center py-4">
                     No students enrolled yet
                   </p>

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "@/components/common/card";
 import Button from "@/components/common/button";
 import Input from "@/components/common/input";
+import Loading from "@/components/common/loading";
 import { useToast } from "@/contexts/toast-context";
 import { useAuth } from "@/contexts/auth-context";
+import { api } from "@/lib/utils/api";
 import {
   User,
   Mail,
@@ -47,46 +49,63 @@ import ChangePasswordForm from "@/components/profile/change-password-form";
  */
 
 export default function ProfileView() {
-  const { isTeacher, user } = useAuth();
+  const { isTeacher, user: authUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-
-  // Student profile fields
-  const studentProfile = {
-    name: "John Doe",
-    email: "john.doe@university.edu",
-    phone: "+92 300 1234567",
-    rollNumber: "CS-2021-001",
-    address: "Lahore, Pakistan",
-    dateOfBirth: "2000-01-15",
-    currentSemester: "Fall 2024",
-    program: "BS Computer Science",
-    enrollmentDate: "2021-09-01",
-    profileImage: null,
-  };
-
-  // Teacher profile fields
-  const teacherProfile = {
-    name: "Dr. John Smith",
-    email: "john.smith@university.edu",
-    phone: "+92 300 1234567",
-    employeeId: "EMP-2020-001",
-    address: "Lahore, Pakistan",
-    dateOfBirth: "1980-05-20",
-    department: "Computer Science",
-    designation: "Associate Professor",
-    joiningDate: "2020-09-01",
-    profileImage: null,
-  };
-
-  const [profile, setProfile] = useState(
-    isTeacher ? teacherProfile : studentProfile
-  );
-
-  const [editedProfile, setEditedProfile] = useState({ ...profile });
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [editedProfile, setEditedProfile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const { success, error } = useToast();
+  const { success, error: showError } = useToast();
+
+  /**
+   * Fetch user profile from API
+   */
+  useEffect(() => {
+    fetchProfile();
+  }, [authUser]);
+
+  const fetchProfile = async () => {
+    setLoading(true);
+    try {
+      const userData = await api.get("/users/profile");
+
+      // Transform API data to profile format
+      const profileData = {
+        id: userData.id,
+        name: userData.fullName || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
+        address: userData.address || "",
+        dateOfBirth: userData.dateOfBirth || "",
+        profileImage: userData.profileImage || null,
+        ...(isTeacher && userData.teacher
+          ? {
+              employeeId: userData.teacher.employeeId || "",
+              department: userData.teacher.department || "",
+              designation: userData.teacher.designation || "",
+              joiningDate: userData.teacher.joiningDate || "",
+            }
+          : userData.student
+          ? {
+              rollNumber: userData.student.rollNumber || "",
+              currentSemester: userData.student.currentSemester || "",
+              program: userData.student.program || "",
+              enrollmentDate: userData.student.enrollmentDate || "",
+            }
+          : {}),
+      };
+
+      setProfile(profileData);
+      setEditedProfile({ ...profileData });
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      showError("Failed to load profile data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEdit = () => {
     setEditedProfile(profile);
@@ -94,13 +113,42 @@ export default function ProfileView() {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    setProfile({
-      ...editedProfile,
-      profileImage: imagePreview || profile.profileImage,
-    });
-    setIsEditing(false);
-    success("Profile updated successfully!");
+  const handleSave = async () => {
+    try {
+      // Only allow updating personal information, not professional/academic info
+      // Professional info (department, designation, joining date, employee ID) can only be changed by admin
+      // Academic info (current semester, program, enrollment date, roll number) can only be changed by admin
+      const updateData = {
+        fullName: editedProfile.name,
+        email: editedProfile.email,
+        phone: editedProfile.phone || "",
+        address: editedProfile.address || "",
+        dateOfBirth: editedProfile.dateOfBirth || null,
+      };
+
+      const updatedUser = await api.patch("/users/profile", updateData);
+
+      // Update profile state
+      const updatedProfile = {
+        ...editedProfile,
+        name: updatedUser.fullName || editedProfile.name,
+        email: updatedUser.email || editedProfile.email,
+        phone: updatedUser.phone || editedProfile.phone,
+        address: updatedUser.address || editedProfile.address,
+        dateOfBirth: updatedUser.dateOfBirth || editedProfile.dateOfBirth,
+        profileImage: imagePreview || profile.profileImage,
+      };
+
+      setProfile(updatedProfile);
+      setIsEditing(false);
+      success("Profile updated successfully!");
+
+      // Refresh profile data
+      fetchProfile();
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      showError(err.message || "Failed to update profile");
+    }
   };
 
   const handleCancel = () => {
@@ -133,20 +181,32 @@ export default function ProfileView() {
   const handleChangePassword = async (data) => {
     setPasswordLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // await api.post('/auth/change-password', data);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await api.patch("/users/profile", {
+        password: data.newPassword,
+      });
 
       setIsPasswordModalOpen(false);
       success("Password changed successfully!");
     } catch (err) {
-      error("Failed to change password. Please check your current password.");
+      showError(
+        err.message ||
+          "Failed to change password. Please check your current password."
+      );
     } finally {
       setPasswordLoading(false);
     }
   };
+
+  if (loading || !profile) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <Loading size="md" />
+          <p className="text-gray-600 mt-3">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -334,7 +394,15 @@ export default function ProfileView() {
                 {isEditing ? (
                   <Input
                     type="date"
-                    value={editedProfile.dateOfBirth}
+                    value={
+                      editedProfile.dateOfBirth
+                        ? typeof editedProfile.dateOfBirth === "string"
+                          ? editedProfile.dateOfBirth.split("T")[0]
+                          : new Date(editedProfile.dateOfBirth)
+                              .toISOString()
+                              .split("T")[0]
+                        : ""
+                    }
                     onChange={(e) =>
                       handleChange("dateOfBirth", e.target.value)
                     }
@@ -342,7 +410,9 @@ export default function ProfileView() {
                   />
                 ) : (
                   <p className="text-base font-semibold text-gray-900">
-                    {new Date(profile.dateOfBirth).toLocaleDateString()}
+                    {profile.dateOfBirth
+                      ? new Date(profile.dateOfBirth).toLocaleDateString()
+                      : "Not set"}
                   </p>
                 )}
               </div>
@@ -407,19 +477,12 @@ export default function ProfileView() {
                       Department
                     </p>
                   </div>
-                  {isEditing ? (
-                    <Input
-                      value={editedProfile.department}
-                      onChange={(e) =>
-                        handleChange("department", e.target.value)
-                      }
-                      className="bg-white"
-                    />
-                  ) : (
-                    <p className="text-base font-semibold text-gray-900">
-                      {profile.department}
-                    </p>
-                  )}
+                  <p className="text-base font-semibold text-gray-900">
+                    {profile.department || "Not set"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 italic">
+                    Contact admin to update
+                  </p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center space-x-2 mb-2">
@@ -428,19 +491,12 @@ export default function ProfileView() {
                       Designation
                     </p>
                   </div>
-                  {isEditing ? (
-                    <Input
-                      value={editedProfile.designation}
-                      onChange={(e) =>
-                        handleChange("designation", e.target.value)
-                      }
-                      className="bg-white"
-                    />
-                  ) : (
-                    <p className="text-base font-semibold text-gray-900">
-                      {profile.designation}
-                    </p>
-                  )}
+                  <p className="text-base font-semibold text-gray-900">
+                    {profile.designation || "Not set"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 italic">
+                    Contact admin to update
+                  </p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center space-x-2 mb-2">
@@ -449,20 +505,14 @@ export default function ProfileView() {
                       Joining Date
                     </p>
                   </div>
-                  {isEditing ? (
-                    <Input
-                      type="date"
-                      value={editedProfile.joiningDate}
-                      onChange={(e) =>
-                        handleChange("joiningDate", e.target.value)
-                      }
-                      className="bg-white"
-                    />
-                  ) : (
-                    <p className="text-base font-semibold text-gray-900">
-                      {new Date(profile.joiningDate).toLocaleDateString()}
-                    </p>
-                  )}
+                  <p className="text-base font-semibold text-gray-900">
+                    {profile.joiningDate
+                      ? new Date(profile.joiningDate).toLocaleDateString()
+                      : "Not set"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 italic">
+                    Contact admin to update
+                  </p>
                 </div>
               </div>
             ) : (
@@ -474,19 +524,12 @@ export default function ProfileView() {
                       Current Semester
                     </p>
                   </div>
-                  {isEditing ? (
-                    <Input
-                      value={editedProfile.currentSemester}
-                      onChange={(e) =>
-                        handleChange("currentSemester", e.target.value)
-                      }
-                      className="bg-white"
-                    />
-                  ) : (
-                    <p className="text-base font-semibold text-gray-900">
-                      {profile.currentSemester}
-                    </p>
-                  )}
+                  <p className="text-base font-semibold text-gray-900">
+                    {profile.currentSemester || "Not set"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 italic">
+                    Contact admin to update
+                  </p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center space-x-2 mb-2">
@@ -495,17 +538,12 @@ export default function ProfileView() {
                       Program
                     </p>
                   </div>
-                  {isEditing ? (
-                    <Input
-                      value={editedProfile.program}
-                      onChange={(e) => handleChange("program", e.target.value)}
-                      className="bg-white"
-                    />
-                  ) : (
-                    <p className="text-base font-semibold text-gray-900">
-                      {profile.program}
-                    </p>
-                  )}
+                  <p className="text-base font-semibold text-gray-900">
+                    {profile.program || "Not set"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 italic">
+                    Contact admin to update
+                  </p>
                 </div>
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center space-x-2 mb-2">
@@ -514,20 +552,14 @@ export default function ProfileView() {
                       Enrollment Date
                     </p>
                   </div>
-                  {isEditing ? (
-                    <Input
-                      type="date"
-                      value={editedProfile.enrollmentDate}
-                      onChange={(e) =>
-                        handleChange("enrollmentDate", e.target.value)
-                      }
-                      className="bg-white"
-                    />
-                  ) : (
-                    <p className="text-base font-semibold text-gray-900">
-                      {new Date(profile.enrollmentDate).toLocaleDateString()}
-                    </p>
-                  )}
+                  <p className="text-base font-semibold text-gray-900">
+                    {profile.enrollmentDate
+                      ? new Date(profile.enrollmentDate).toLocaleDateString()
+                      : "Not set"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 italic">
+                    Contact admin to update
+                  </p>
                 </div>
               </div>
             )}
